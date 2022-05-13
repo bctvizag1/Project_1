@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- <code><%- JSON.stringify(data.metaData)%></code>   
+    <hr>
+    <code><%- JSON.stringify(data.rows[1])%></code>
+    <hr> -->
+    <table>
+        <thead>
+            <tr>
+                <% data.metaData.forEach(element => { %>
+                   <th><%=element.name%></th>
+                <% }); %>
+            </tr>
+        </thead>
+        <tbody>
+            <% data.rows.forEach(function(row){ %>
+            <tr>
+                <%  Object.values(row).forEach(function(value) { %>
+                <td><%= value %></td>
+                <% }) %>               
+            </tr>
+            <%})%>
+        </tbody>
+
+    </table>
+    
+</body>
+</html>
