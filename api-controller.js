@@ -7,14 +7,33 @@ let url = 'http://117.239.146.106:3001/'
 //let url = 'http://10.34.128.24:3001/'
 //#region 
 
-exports.default = function(req,res) {
-    const sql = sqlquery.query3;
+exports.ogbar_susnp = function(req,res) {
+    const sql = sqlquery.ogbar_susnp;
     
     console.log(`connection URL ${url}`);
 
     oracle.queryObject(sql, {}, {})
         .then(function (vmRows) {
-           return processedResult(vmRows)
+            let link1 = url+"api-vmWkg/vmWkg";
+           return processedResult(vmRows, link1 , true )
+        }).then(result =>{
+            console.log("Post Completed ");
+            res.json(result)
+        })
+        .catch(function(err) {
+            res.json(err)
+        });
+}
+
+exports.repeatFault = function(req,res) {
+    const sql = sqlquery.repeatfaults;
+    
+    console.log(`repeat faults connection URL ${url}`);
+
+    oracle.queryObject(sql, {}, {})
+        .then(function (vmRows) {
+            let link1 =  url+"api-vmWkg/repeatFault"
+           return processedResult(vmRows, link1 , false)
         }).then(result =>{
             console.log("Post Completed ");
             res.json(result)
@@ -25,7 +44,9 @@ exports.default = function(req,res) {
 }
 
 
-async function processedResult(vmRows){ 
+async function processedResult(vmRows, link, dataDelete){ 
+
+    console.log("fired links", link, dataDelete);
     
             let msg = {
                 total: vmRows.rows.length,
@@ -36,19 +57,23 @@ async function processedResult(vmRows){
             let a = 0
             console.log(msg);
 
-            console.log("Delete VMWorkingLines")
-
-            await deleteData().then(response =>{
-                    console.log("deleted Records : ", response.result.deletedCount);
-                    msg.result.push(`Deleted ${response.result.deletedCount}`)
-                })
+           
+            if(dataDelete) {
+                console.log(dataDelete);
+                console.log(link);
+                console.log("Delete VMWorkingLines")
+                await deleteData(link).then(response =>{
+                        console.log("deleted Records : ", response.result.deletedCount);
+                        msg.result.push(`Deleted ${response.result.deletedCount}`)
+                    })
+            }
 
             for (let i = 1; i <= msg.splits; i++) {
                 
                 let data = []
                 data = vmRows.rows.slice(a, i * 200)
                 
-                await postData(data).then(response =>{
+                await postData(data, link).then(response =>{
                     console.log("Posted Records : ", response.result.length);
                     msg.result.push(response.result.length)
                 })
@@ -70,9 +95,9 @@ async function processedResult(vmRows){
  *****/
 
 
-async function postData(data) {
+async function postData(data, link) {
     let phoneData = await new Promise((resolve, reject)=>{
-        axios.post( url+"api-vmWkg/vmWkg", data)
+        axios.post( link, data)
         .then((response) =>{    
             resolve(response.data)
         }).catch(err=> reject(err))
@@ -82,9 +107,10 @@ async function postData(data) {
 }
 
 
-async function deleteData() {
+
+async function deleteData(link) {
     let phoneData = await new Promise((resolve, reject)=>{
-        axios.delete( url+"api-vmWkg/vmWkg")
+        axios.delete( link)
         .then((response) =>{    
             resolve(response.data)
         }).catch(err=> reject(err))

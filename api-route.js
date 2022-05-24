@@ -9,7 +9,8 @@ router.get('/', (req, res) =>{
 
 router.get('/test', contrl.test);
 
-router.get('/post', contrl.default);
+router.get('/post', contrl.ogbar_susnp);
+router.get('/fault', contrl.repeatFault);
 
 router
     .get('/find', contrl.findPhone)

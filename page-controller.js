@@ -7,7 +7,7 @@ exports.default = (req, res) =>{
 }
 
 exports.test = (req,res) =>{
-    const sql = sqlquery.query3;
+    const sql = sqlquery.query2;
     console.log('test fired');
     oracle.queryObject(sql,{},{}).then(result => {
         
