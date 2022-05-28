@@ -7,10 +7,10 @@ exports.default = (req, res) =>{
 }
 
 exports.test = (req,res) =>{
-    const sql = sqlquery.query2;
-    console.log('test fired');
+    const sql = sqlquery.repeatfaults;
+   console.log('fired');
     oracle.queryObject(sql,{},{}).then(result => {
         
-        res.render( 'test', {data:result})
+        res.render( 'repeatfaults', {data:result})
     })
 }

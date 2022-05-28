@@ -5,7 +5,7 @@ const contrl = require('./page-controller')
 
 router.get('/',contrl.default);
 
-router.get('/test', contrl.test);
+router.get('/repeatfaults', contrl.test);
 
 module.exports = router
 

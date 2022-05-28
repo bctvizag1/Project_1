@@ -36,8 +36,9 @@ const sqlquery = {
         and b.SERVICE_TYPE in ('Landline','Bharat Fiber Voice','Bharat Fiber BB')
         
     `,
+    SERVICE_TYPE_COUNT : `select service_type, count(*) CNT from vm_working_lines GROUP BY service_type order by 2 desc`,
 
-    SERVICE_TYPE_COUNT : 'select service_type, count(*) CNT from vm_working_lines GROUP BY service_type order by 2 desc'
+    testsql : `select f.Phone_No, f.EXCHANGE_CODE, f.COMP_CLD_DATE dt, 1 no from VM_CDR_FAULTS1 f  where rownum<=1`
 }
 
 //and ROWNUM<=10

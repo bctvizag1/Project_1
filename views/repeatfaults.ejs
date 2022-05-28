@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="css/style.css">
+
 </head>
 <body>
     <!-- <code><%- JSON.stringify(data.metaData)%></code>   
@@ -21,8 +23,14 @@
         <tbody>
             <% data.rows.forEach(function(row){ %>
             <tr>
-                <%  Object.values(row).forEach(function(value) { %>
-                    <td><%= value %></td>
+                <%  Object.values(row).forEach(function(value, index, array1) { %>
+                    <% if (typeof value === 'object') { %> 
+                        <td ><%= JSON.stringify(value).substring(1,11) %></td>                             
+                    <% } else { %> 
+                        <td><%= value %></td>          
+                    <% } %> 
+
+                    
                 <% }) %>               
             </tr>
             <%})%>
