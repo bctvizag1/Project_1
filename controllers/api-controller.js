@@ -1,22 +1,29 @@
-const oracle = require('./models/db');
-const sqlquery = require('./models/query');
+const oracle = require('../models/db');
+const sqlquery = require('../models/query');
 
 const axios = require('axios');
 
-let url = 'http://117.239.146.106:3001/'
+let url = 'http://bsnlvm.com:3001/'
+
+//let url = 'http://117.239.146.106:3001/'
 //let url = 'http://10.34.128.24:3001/'
 //#region 
 
 exports.ogbar_susnp = function(req,res) {
     const sql = sqlquery.ogbar_susnp;
+
+    console.log(Object.keys(sqlquery));
     
     console.log(`connection URL ${url}`);
-
+    
     oracle.queryObject(sql, {}, {})
-        .then(function (vmRows) {
-            let link1 = url+"api-vmWkg/vmWkg";
+        .then(function (vmRows) {            
+            console.log('fired here');
+           let link1 = url+"api-vmWkg/vmWkg";
            return processedResult(vmRows, link1 , true )
-        }).then(result =>{
+        })
+        .then(result =>{
+            
             console.log("Post Completed ");
             res.json(result)
         })
@@ -34,6 +41,25 @@ exports.repeatFault = function(req,res) {
         .then(function (vmRows) {
             let link1 =  url+"api-vmWkg/repeatFault"
            return processedResult(vmRows, link1 , false)
+        })
+        .then(result =>{
+            console.log("Post Completed ");
+            res.json(result)
+        })
+        .catch(function(err) {
+            res.json(err)
+        });
+}
+
+exports.clearedFault = function(req,res) {
+    const sql = sqlquery.clearedFaults;
+    
+    console.log(`Cleared faults connection URL ${url}`);
+
+    oracle.queryObject(sql, {}, {})
+        .then(function (vmRows) {
+            let link1 =  url+"api-vmWkg/repeatFault"
+           return processedResult(vmRows, link1 , false)
         }).then(result =>{
             console.log("Post Completed ");
             res.json(result)
@@ -43,14 +69,13 @@ exports.repeatFault = function(req,res) {
         });
 }
 
-
 async function processedResult(vmRows, link, dataDelete){ 
 
     console.log("fired links", link, dataDelete);
     
             let msg = {
                 total: vmRows.rows.length,
-                splits: Math.ceil(vmRows.rows.length / 200),
+                splits: Math.ceil(vmRows.rows.length / 25),
                 result: []
             }
 
@@ -71,14 +96,14 @@ async function processedResult(vmRows, link, dataDelete){
             for (let i = 1; i <= msg.splits; i++) {
                 
                 let data = []
-                data = vmRows.rows.slice(a, i * 200)
+                data = vmRows.rows.slice(a, i * 25)
                 
                 await postData(data, link).then(response =>{
                     console.log("Posted Records : ", response.result.length);
                     msg.result.push(response.result.length)
                 })
 
-                a = i * 200
+                a = i * 25
             }
 
             return msg;
@@ -105,8 +130,6 @@ async function postData(data, link) {
     })
     return phoneData;
 }
-
-
 
 async function deleteData(link) {
     let phoneData = await new Promise((resolve, reject)=>{
@@ -145,7 +168,7 @@ exports.find = function(req,res){
 
 //#region 
 exports.test = (req,res) =>{
-    const sql = sqlquery.SERVICE_TYPE_COUNT;
+    const sql = sqlquery.testQuery;
     console.log('test fired');
     oracle.queryObject(sql,{},{}).then(result => {
         

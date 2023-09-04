@@ -1,34 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <!-- <code><%- JSON.stringify(data.metaData)%></code>   
-    <hr>
-    <code><%- JSON.stringify(data.rows[1])%></code>
-    <hr> -->
-    <table>
-        <thead>
-            <tr>
-                <% data.metaData.forEach(element => { %>
-                   <th><%=element.name%></th>
-                <% }); %>
-            </tr>
-        </thead>
-        <tbody>
-            <% data.rows.forEach(function(row){ %>
-            <tr>
-                <%  Object.values(row).forEach(function(value) { %>
-                    <td><%= value %></td>
-                <% }) %>               
-            </tr>
-            <%})%>
-        </tbody>
+<%- include('partials/header.ejs');  -%>
+<%- include('partials/navbar1.ejs');  -%>
 
-    </table>
-    
-</body>
-</html>
+    <!-- <%= locals.links?JSON.stringify(links):""%> -->
+    <!-- <%= locals.calender?JSON.stringify(calender):""%> -->
+
+<div class="d-flex justify-content-between bg-secondary text-white">
+    <div class="p-2">
+        <span class="badge badge-primary">Report : </span>
+            <span class="font-weight-bold"> <%=title %></span> 
+    </div>
+    <div class="dtcalender">
+        <% if(locals.calender) { %>
+            <form class="form-inline m-2 " method="post">
+                <input class="form-control mr-sm-2 form-control-sm" type="date"
+                     placeholder="Search" aria-label="Search" name="fromDt"
+                      value="<%= calender.startOfMonth%>">
+                <span> -- </span>
+                <input class="form-control mr-sm-2 form-control-sm" type="date" 
+                placeholder="Search" aria-label="Search" name="toDt" value="<%= calender.endOfMonth%>">
+                <button class="btn btn-success my-2 my-sm-0 btn-sm" type="submit">Get Data</button>
+            </form>
+            <% } %>  
+    </div>
+</div>
+
+<%- include('table1.ejs',data)  -%>
+
+
+    <%- include ('partials/footerscripts.ejs') -%>
+    <script>
+       $(document).ready(function () {
+            $('.jqueryTable').DataTable({
+                order: [[0, 'desc']],
+                "iDisplayLength" : 25,
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    [10, 25, 50, 'All']
+                ]
+            });
+            // $('#example_length').append(`<span class="badge badge-secondary"><%=title %><span>`)
+            
+        });
+    </script>
+    <%- include ('partials/footer.ejs')-%>

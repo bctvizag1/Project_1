@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var contrl = require('./api-controller')
+var contrl = require('./controllers/api-controller')
 
 
 router.get('/', (req, res) =>{
@@ -11,6 +11,8 @@ router.get('/test', contrl.test);
 
 router.get('/post', contrl.ogbar_susnp);
 router.get('/fault', contrl.repeatFault);
+router.get('/clearedFault', contrl.clearedFault);
+
 
 router
     .get('/find', contrl.findPhone)

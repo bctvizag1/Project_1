@@ -9,11 +9,12 @@ const oracleDbRelease = function(conn) {
     });
   };
   
-  function queryArray(sql, bindParams, options) {
+  function queryArray_orcl(sql, bindParams, options, conn) {
       options.isAutoCommit = false; // we only do SELECTs
    
+    // console.log(conn, dbConfig[conn]);
       return new Promise(function(resolve, reject) {
-          oracledb.getConnection(dbConfig)
+          oracledb.getConnection(dbConfig[conn])
           .then(function(connection){
               //console.log("sql log: " + sql + " params " + bindParams);
               connection.execute(sql, bindParams, options)
@@ -36,12 +37,17 @@ const oracleDbRelease = function(conn) {
               });
       });
   }
+
   
-  function queryObject(sql, bindParams, options) {
+  
+  function queryObject(sql, bindParams, options, conn="orcl") {
       options['outFormat'] = oracledb.OBJECT; // default is oracledb.ARRAY
-      return queryArray(sql, bindParams, options);
+      
+      return queryArray_orcl(sql, bindParams, options, conn);
   }
+
+
   
-  module.exports = queryArray; 
-  module.exports.queryArray = queryArray; 
-  module.exports.queryObject = queryObject;
+//module.exports = queryArray; 
+module.exports.queryArray = queryArray_orcl; 
+module.exports.queryObject = queryObject;

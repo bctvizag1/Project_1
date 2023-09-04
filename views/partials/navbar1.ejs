@@ -1,0 +1,69 @@
+<header>
+  <nav class="navbar navbar-expand-sm navbar-dark  bg-dark">
+    <a class="navbar-brand" href="#">BSNL Vizag</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-link active" href="/">Home <span class="sr-only">(current)</span></a>
+        <!-- Dropdown menu LL Reports -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            LL Reports
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="/LL_Provisions_service_sub_type_wise" title="LL_Provisions_service_sub_type_wise">
+              Land Line Provisions</a>        
+            <a class="dropdown-item" href="/NPC_PENDING_ORDERS/LL">NPC_PENDING_ORDERS</a>
+            <a class="dropdown-item" href="/faults">LL Faults</a>
+            
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#">More coming soon</a>
+          </div>
+        </li>
+        <!-- End of Dropdown menu LL Reports -->
+
+        <!-- Dropdown menu BB Reports -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            BB Reports
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="/NPC_PENDING_ORDERS/BB">NPC_PENDING_ORDERS</a>
+            <a class="dropdown-item" href="#">Another action</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#">More coming soon</a>
+          </div>
+        </li>
+        <!-- End of Dropdown menu BB Reports -->
+
+        <!-- Dropdown menu FTTH Reports -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            FTTH Reports
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="/NPC_PENDING_ORDERS/FTTH">NPC_PENDING_ORDERS</a>
+            <a class="dropdown-item" href="#">Another action</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#">More coming soon</a>
+          </div>
+        </li>
+        <!-- End of Dropdown menu BB Reports -->
+
+       
+        
+      </div>
+    </div>
+
+  </nav>
+  <script>
+    
+    var today = new Date().toISOString().split('T')[0];
+    $('#fromDt').val(today);
+    $('#toDt').val(today);
+    console.log('test');
+  </script>
+   
+    </header>

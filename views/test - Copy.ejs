@@ -1,0 +1,65 @@
+<%- include('partials/header.ejs');  -%>
+<%- include('partials/navbar1.ejs');  -%>
+<div class="container-fluid">
+    
+        <table id="example" class="display" style="width:95%">
+            <caption>Page : <%=title %></caption>
+            <thead>
+                <tr>
+                    <% data.metaData.forEach(element => { %>
+                       <th><%=element.name%></th>
+                    <% }); %>
+                </tr>
+            </thead>
+            <tbody>
+                <% data.rows.forEach(function(row){ %>
+                <tr>
+                    <% Object.entries(row).forEach(function(value) { %>
+                
+                        <% if (locals.links) { 
+                            let linkf = links.filter(obj=> obj.feild===value)
+                        %>
+                        <%= key %>    
+                
+                        <% } else { %>
+                            <td>
+                                <%= typeof value==='object' ? moment(value).format('Do MMMM, YYYY') :value %>
+                            </td>
+            
+                        <% } %>
+                
+                
+                    <% }) %>
+                </tr>
+                <%})%>
+    
+            </tbody>
+    
+            <% if(locals.footer) { %>
+                <tfoot>
+                    <tr>
+                        <% footer.forEach(function(f){ %>
+                            <td><%- f %></td>
+                        <%}) %>
+                    </tr>
+                </tfoot>
+    
+             <% } %>
+    
+    
+        </table>
+</div>
+    <%- include ('partials/footerscripts.ejs') -%>
+    <script>
+       $(document).ready(function () {
+            $('#example').DataTable({
+                order: [[0, 'desc']],
+                "iDisplayLength" : 25,
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    [10, 25, 50, 'All']
+                ]
+            });
+        });
+    </script>
+    <%- include ('partials/footer.ejs')-%>
