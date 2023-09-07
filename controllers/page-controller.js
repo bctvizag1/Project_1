@@ -4,8 +4,19 @@ const oracle = require('../models/db');
 const sqlquery = require('../models/query').sqlquery;
 const itpcQuery = require('../models/query').itpcQuery;
 
+
+const cookieParser = require("cookie-parser");
+const sessions = require('express-session');
+const oneDay = 1000 * 60 * 5;
+
+
+// a variable to save a session
+var session;
+
+
+
 exports.default = (req, res) =>{
-    console.log('fired index default');
+    console.log('fired index default', req.ip);
     res.render('index', { title: 'BSNL Visakhapatnam' });
 }
 
@@ -20,7 +31,7 @@ exports.jobStatus = (req,res) =>{
 exports.faultDailyLL = (req,res) => {
     const sql = itpcQuery.dailyFaultsLL; 
 
-    console.log("Displayed: Faults");
+    console.log("Displayed: faultDailyLL", req.ip);
 
     oracle.queryObject(sql,{},{},'itpc').then(result => {  
         res.render( 'test', {
@@ -33,7 +44,7 @@ exports.faultDailyLL = (req,res) => {
 exports.faultDailyFTTH = (req,res) =>{
     const sql = itpcQuery.dailyFaultsFTTH; 
 
-    console.log("Displayed: Faults");
+    console.log("Displayed: faultDailyFTTH", req.ip);
 
     oracle.queryObject(sql,{},{},'itpc').then(result => {        
         res.render( 'test', {
@@ -46,7 +57,7 @@ exports.faultDailyFTTH = (req,res) =>{
 exports.faultDailyBB = (req,res) =>{
     const sql = itpcQuery.dailyFaultsBB; 
 
-    console.log("Displayed: Faults");
+    console.log("Displayed: faultDailyBB", req.ip);
 
     oracle.queryObject(sql,{},{},'itpc').then(result => {        
         res.render( 'test', {
@@ -68,7 +79,12 @@ exports.wkg_lines = (req,res) =>{
 exports.NPC_PENDING_ORDERS = (req,res) =>{
     let sql = '';
     let title = '';
-    let links =[]
+    let links =[];
+    let tablesummary = [];
+    let summarypage = ''
+    
+
+
     switch (req.params.TYPE) {
       case "LL":
         sql = `
@@ -82,7 +98,9 @@ exports.NPC_PENDING_ORDERS = (req,res) =>{
         title = 'LL NPC Pending Orders';
         links = [
             {feild:"COUNT", params:`SDE` , page:'NPC_PENDING_ORDERS_SDE/LL'}
-        ]
+        ];
+        tablesummary = ['COUNT'];
+        summarypage = 'NPC_PENDING_ORDERS_SDE/LL'
         break;
       case "BB":
         sql = `
@@ -92,10 +110,14 @@ exports.NPC_PENDING_ORDERS = (req,res) =>{
             and  order_status not in ('Complete','Open','Cancelled','Submission In Progress')  and phone_no not like '0891-297%'
             group by a.sde             
             `; 
-            title = 'BB NPC Pending Orders'
-            links = [
-                {feild:"COUNT", params:`SDE` , page:'NPC_PENDING_ORDERS_SDE/LL'}
-            ]
+        
+        title = 'BB NPC Pending Orders'
+        
+        links = [
+                {feild:"COUNT", params:`SDE` , page:'NPC_PENDING_ORDERS_SDE/BB'}
+            ];
+        tablesummary = ['COUNT'];
+        summarypage ='NPC_PENDING_ORDERS_SDE/BB'
         break;
       case "FTTH":
         sql = `
@@ -105,33 +127,36 @@ exports.NPC_PENDING_ORDERS = (req,res) =>{
             COUNT(1) COUNT FROM vm_exchange_control a, sys.vm_orders b where a.exchange=b.exchange_code 
             and  order_status not in ('Complete','Open','Cancelled','Submission In Progress')
             and  b.ssa='VISAKHAPATNAM' and b.order_type='New' AND service_sub_type like 'Bharat Fiber%'     group by sde
-        `
+        `;
+        title = 'FTTH NPC Pending Orders';
         links = [
-            {feild:"VOICE", params:`SDE` , page:'NPC_PENDING_ORDERS_SDE/LL'},
-            {feild:"BB", params:`SDE` , page:'NPC_PENDING_ORDERS_SDE/LL'},           
-            {feild:"COUNT", params:`SDE` , page:'NPC_PENDING_ORDERS_SDE/LL'}
-        ]
+            {feild:"VOICE", params:`SDE` , page:'NPC_PENDING_ORDERS_SDE/FTTH'},
+            {feild:"BB", params:`SDE` , page:'NPC_PENDING_ORDERS_SDE/FTTH'},           
+            {feild:"COUNT", params:`SDE` , page:'NPC_PENDING_ORDERS_SDE/FTTH'}
+        ];
+
+        tablesummary = ['VOICE','BB','COUNT'];
+        summarypage = 'NPC_PENDING_ORDERS_SDE/FTTH'
       default:
         break;
     }
       
+   
 
-    console.log("Displayed: Faults");
-
-    
     oracle.queryObject(sql,{},{}).then(result => {        
 
         // res.json({data:result})
         let t1 =  result.rows.reduce((total, obj)=>(obj.COUNT + total),0);
 
         // console.log(t1);
-
         res.render( 'test', {
             data:result,
             title:title,
             links:links,
-            footer:["Total",`<b><a href="NPC_PENDING_ORDERS_SDE/${req.params.TYPE}/total"> ${t1} </a></b>`],
-            t1:t1
+            // footer:["Total",`<b><a href="NPC_PENDING_ORDERS_SDE/${req.params.TYPE}/total"> ${t1} </a></b>`],
+            tablesummary:tablesummary,
+            summarypage: summarypage
+            
             
         })
                 
@@ -140,31 +165,55 @@ exports.NPC_PENDING_ORDERS = (req,res) =>{
 
 exports.NPC_PENDING_ORDERS_SDE = (req,res) =>{
 
+    let sql = ""
+
     let sqlSDE = '';
     let service_sub_type = '';
 
-    if(req.params.SDE !='total') {
+    if(req.params.SDE !='TOTAL') {
         sqlSDE = `and  A.SDE = '${req.params.SDE}'`;
     } 
 
     switch (req.params.TYPE) {
       case "LL":
         service_sub_type = `and service_sub_type='Fixed Landline' and  phone_no not like '0891-297%'  `;
+
+        sql = `
+        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, sys.vm_orders b 
+        where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' AND  
+        b.order_sub_type like 'Provision%' ${sqlSDE} and
+        order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  ${service_sub_type}    
+        `; 
         break;
       case "BB":
+        
         service_sub_type = `and service_sub_type='Fixed Landline' and  phone_no not like '0891-297%'  `;
+        
+        sql = `
+        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, sys.vm_orders b 
+        where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' AND  
+        b.order_sub_type like 'Provision%' ${sqlSDE} and
+        order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  ${service_sub_type}    
+        `;
+        
         break;
+
+      case "FTTH" :
+        sql = `
+        SELECT b.exchange_code, b.Phone_NO, BB_user_id,Service_sub_type,clarity_service_order,order_no,order_created_date,order_status,pending_task,MAINTENANCE_FRANCHISEE,(trunc(sysdate)-trunc(order_created_date)) pend
+          FROM vm_exchange_control a, sys.vm_orders b where a.exchange=b.exchange_code 
+            and  order_status not in ('Complete','Open','Cancelled','Submission In Progress') ${sqlSDE}
+            and  b.ssa='VISAKHAPATNAM' and b.order_type='New' AND service_sub_type like 'Bharat Fiber%'   
+        `;
+
+        break;
+
 
       default:
         break;
     }
 
-    let sql = `
-    SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, sys.vm_orders b 
-    where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' AND  
-    b.order_sub_type like 'Provision%' ${sqlSDE} and
-    order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  ${service_sub_type}    
-    `; 
+ 
 
     // console.log(sql);
     
@@ -189,9 +238,7 @@ exports.LL_Closures_Subtype = (req,res) =>{
     `; 
 
     console.log("Displayed: LL_Closures_Subtype");
-    oracle.queryObject(sql,{},{}).then(result => {        
-        
-        
+    oracle.queryObject(sql,{},{}).then(result => {      
         res.render( 'LL_Closures_Subtype', {
             data:result,
             title:"LL Closures service sub type wise",
@@ -225,13 +272,15 @@ exports.LL_Provisions_service_sub_type_wise = (req,res) =>{
             data:result,
             title:title,
             links:[
-                {feild:"COUNT", params:`ser_type` , page:'NPC_PENDING_ORDERS_SDE'}
+                {feild:"COUNT", params:`SER_TYPE` , page:'NPC_PENDING_ORDERS_SDE'}
             ],
             calender: {startOfMonth:startOfMonth, 
                     endOfMonth:endOfMonth}
         })
     })  
    
+
+
 
 }
 

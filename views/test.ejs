@@ -3,6 +3,7 @@
 
     <!-- <%= locals.links?JSON.stringify(links):""%> -->
     <!-- <%= locals.calender?JSON.stringify(calender):""%> -->
+    <%= locals.tablesummary?JSON.stringify(tablesummary):""%>
 
 <div class="d-flex justify-content-between bg-secondary text-white">
     <div class="p-2">
@@ -30,8 +31,7 @@
     <%- include ('partials/footerscripts.ejs') -%>
     <script>
        $(document).ready(function () {
-            $('.jqueryTable').DataTable({
-                order: [[0, 'desc']],
+            $('.jqueryTable').DataTable({                
                 "iDisplayLength" : 25,
                 lengthMenu: [
                     [10, 25, 50, -1],

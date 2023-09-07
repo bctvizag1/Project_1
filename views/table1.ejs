@@ -4,14 +4,16 @@
       
         <thead class="thead-dark">
             <tr>
+                <th>Sno</th>
                 <% data.metaData.forEach(element => { %>
                    <th><%=element.name%></th>
                 <% }); %>
             </tr>
         </thead>
         <tbody>
-            <% data.rows.forEach(function(row){ %>
+            <% data.rows.forEach(function(row, i){ %>
                 <tr>
+                    <td><%= i+1 %></td>
                     <% for (const [key, value] of Object.entries(row)) { %>
                         <% if (locals.links) { 
                             let linkf=links.filter(obj=> obj.feild===key)
@@ -36,22 +38,36 @@
         
         </tbody>
 
+
+
         <% if(locals.footer) { %>
             <tfoot>
                 <tr>
+                    <td>Total</td>
                     <% footer.forEach(function(f){ %>
                         <td><%- f -%></td>
                     <%}) %>
                 </tr>
             </tfoot>
 
-         <% } %>
+        <% } %>
 
 
+        <% if(locals.tablesummary) { %>
+            <tfoot>
+                <tr>
+                <td>Total</td>
+                <% data.metaData.forEach(element => { %>                    
+                   <td><strong><a href="/<%=summarypage%>/TOTAL">
+                    
+                    <%- tablesummary.includes(element.name)?  
+                          data.rows.reduce((total, obj)=>(obj[element.name] + total),0) : "**" %>
+                </strong> </a>
+                </td>
+                <% }); %>
+                </tr>
+            </tfoot>
+        <% } %>
     </table>
-    <% 
         
-        let t =  data.rows.reduce((total, obj)=>(obj.COUNT + total),0);
-    %>
-    <%= t%>
 </div>
