@@ -1,0 +1,16 @@
+
+<%- include ('partials/footerscripts.ejs') -%>
+<script>
+   $(document).ready(function () {
+        $('.jqueryTable').DataTable({                
+            "iDisplayLength" : 25,
+            lengthMenu: [
+                [10, 25, 50, -1],
+                [10, 25, 50, 'All']
+            ]
+        });
+        // $('#example_length').append(`<span class="badge badge-secondary"><%=title %><span>`)
+        
+    });
+</script>
+<%- include ('partials/footer.ejs')-%>

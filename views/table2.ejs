@@ -1,7 +1,6 @@
-<div class="container-fluid">
-    <!-- <table id="example" class="display compact" style="width:95%"> -->
-    <table   class="jqueryTable table table-sm table-striped table-bordered" style="width:95%">
-      
+
+<!-- <table id="example" class="display compact" style="width:100%"> -->
+    <table class="dataTable display compact" style="width:100%">
         <thead>
             <tr>
                 <th>Sno</th>
@@ -37,37 +36,22 @@
                 <%})%>
         
         </tbody>
-
-
-
-        <% if(locals.footer) { %>
-            <tfoot>
-                <tr>
-                    <td>Total</td>
-                    <% footer.forEach(function(f){ %>
-                        <td><%- f -%></td>
-                    <%}) %>
-                </tr>
-            </tfoot>
-
-        <% } %>
-
-
-        <% if(locals.tablesummary) { %>
-            <tfoot>
-                <tr>
-                <td>Total</td>
-                <% data.metaData.forEach(element => { %>                    
-                   <td><strong><a href="/<%=summarypage%>/TOTAL">
-                    
-                    <%- tablesummary.includes(element.name)?  
-                          data.rows.reduce((total, obj)=>(obj[element.name] + total),0) : "**" %>
-                </strong> </a>
-                </td>
-                <% }); %>
-                </tr>
-            </tfoot>
-        <% } %>
-    </table>
         
-</div>
+        <% if(locals.tablesummary) { %>
+                <tfoot>
+                    <tr>
+                    <td>Total</td>
+                    <% data.metaData.forEach(element => { %>                    
+                       <td><strong><a href="/<%=summarypage%>/TOTAL">
+                        
+                        <%- tablesummary.includes(element.name)?  
+                              data.rows.reduce((total, obj)=>(obj[element.name] + total),0) : "**" %>
+                    </strong> </a>
+                    </td>
+                    <% }); %>
+                    </tr>
+                </tfoot>
+            <% } %>
+    
+    </table>
+    

@@ -13,8 +13,6 @@ const oneDay = 1000 * 60 * 5;
 // a variable to save a session
 var session;
 
-
-
 exports.default = (req, res) =>{
     console.log('fired index default', req.ip);
     res.render('index', { title: 'BSNL Visakhapatnam' });
@@ -76,6 +74,7 @@ exports.wkg_lines = (req,res) =>{
     })
 }
 
+/*
 exports.NPC_PENDING_ORDERS = (req,res) =>{
     let sql = '';
     let title = '';
@@ -213,10 +212,7 @@ exports.NPC_PENDING_ORDERS_SDE = (req,res) =>{
         break;
     }
 
- 
-
-    // console.log(sql);
-    
+    // console.log(sql);   
     
     oracle.queryObject(sql,{},{}).then(result => {              
         
@@ -310,5 +306,5 @@ function calenderMiddleware(req){
 
 
 }
-
+*/
 

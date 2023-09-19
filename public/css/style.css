@@ -1,13 +1,25 @@
-/* th, td {
+.table0 {
+    text-align: center;
+    font-size: 0.8rem;
+}
+
+.table0 th, td {
     white-space: nowrap;
     padding: 2px;
 }
 
-table {           
+.table0 table {           
     border-collapse: collapse;
-    width: 80%;
+    width: 95%;
+    margin: 10px;
 }
 
-table, td, th {
+.table0 table, table0 td, table0 th {
     border: 1px solid;
-} */
+    text-align: center;
+}
+
+.table0 table td:nth-child(2) {
+    font-weight: bold;
+    text-align: left;
+}

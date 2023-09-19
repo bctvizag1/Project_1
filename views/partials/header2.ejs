@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DataTable Export</title>
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+
+
+
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">BSNL Vizag</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/">Home</a>
+                    </li>
+                    <!-- Dropdown menu LL Reports -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            LL Reports
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li>
+                                <a class="dropdown-item" href="/LL_Provisions_service_sub_type_wise"
+                                    title="LL_Provisions_service_sub_type_wise">
+                                    Land Line Provisions</a>
+                            </li>
+                            <li><a class="dropdown-item" href="/NPC_PENDING_ORDERS/LL">NPC_PENDING_ORDERS</a></li>
+                            <li><a class="dropdown-item" href="/faults">LL Faults</a></li>
+                            <li><a class="dropdown-item" href="/CLOUSER/LL">CLOUSER</a></li>
+
+                            <li>
+                                <a class="dropdown-item" href="#">Another action</a>
+                            </li>
+                            <li>
+
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#">Something else here</a></li>
+                        </ul>
+                    </li>
+                    <!-- End of Dropdown menu LL Reports -->
+                    <!-- Dropdown menu BB Reports -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            BB Reports
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+
+                            <li> <a class="dropdown-item" href="/NPC_PENDING_ORDERS/BB">NPC_PENDING_ORDERS</a></li>
+
+
+                            <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+                </ul>
+                </li>
+                <!-- End of Dropdown menu BB Reports -->
+                <!-- Dropdown menu FTTH Reports -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        FTTH Reports
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="/CompletedOrders/FTTH">Completed Orders</a></li>
+                        <li><a class="dropdown-item" href="/CLOUSER/FTTH">Closurers</a></li>
+                        <li><a class="dropdown-item" href="/NPC_PENDING_ORDERS/FTTH">NPC Pending Orders</a></li>
+                        <li> </li>
+                        <li><a class="dropdown-item" href="/Pending_Faults/FTTH">Pending Faults</a> </li>
+                        <li><a class="dropdown-item" href="/CLOUSER_PENDING/FTTH">Closurers Pending</a> </li>
+                        <li>
+                            <div class="dropdown-divider"></div>
+                        </li>
+                        <li><a class="dropdown-item" href="/FTTH_Provision_OLT/New">FTTH Provisions OLT IP wise</a></li>
+                        <li><a class="dropdown-item" href="/FTTH_Provision_OLT/Disconnect">FTTH Closures OLT IP wise</a>
+                        </li>
+                        <li><a class="dropdown-item" href="/summary_Close_Provn">Provision and Closurers Summary</a>
+                        </li>
+                        <li><a class="dropdown-item" href="/test">TEST</a></li>
+
+
+                        <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="#">Something else here</a></li>
+                </ul>
+                </li>
+                <!-- End of Dropdown menu FTTH Reports -->
+
+
+                <!-- Dropdown Summary Reports -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        Summary Reports
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+
+                        <li> 
+                            <a class="dropdown-item" href="/summary_Close_Provn">Provision and Closurers Summary</a>
+                        </li>
+
+
+                        <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="#">Something else here</a></li>
+                </ul>
+                </li>
+                <!-- End of Dropdown Summary Reports -->
+
+
+
+
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+                </li>
+                </ul>
+                <!-- <form class="d-flex">
+              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+              <button class="btn btn-outline-success" type="submit">Search</button>
+            </form> -->
+            </div>
+        </div>
+    </nav>

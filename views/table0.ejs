@@ -1,0 +1,73 @@
+
+<div class="container-fluid">
+    <table>
+        <colgroup>
+            <col >
+            <col >
+            <col span="4" style="background-color: lightgreen;">
+            <col span="5" style="background-color: rgba(252, 132, 212, 0.452); ">
+            <col  style="text-align: center; font-size: 1.25rem;">
+        </colgroup>
+        <thead>
+            <tr>
+                <th rowspan="2">Sno</th>
+                <th rowspan="2"><%=desgn%></th>
+                <th colspan="4">Provisions</th>
+                <th colspan="5">Closures</th>
+                <th rowspan="2"> Net</th>
+            </tr>
+            <tr>
+                <!-- <th>Sno</th>
+                <th>SDE</th> -->
+                <th>LL</th>
+                <th>BB</th>
+                <th>FTTH</th>
+                <th>Total</th>
+                <th>LL</th>
+                <th>BB</th>
+                <th>FTTH</th>
+                <th>FTTH <br>
+                    Conv</th>
+                <th>Total</th>
+                <!-- <th>Net</th> -->
+            </tr>
+        </thead>
+        <tbody>
+            <% data.rows.forEach(function(row, i){ %>
+            <tr>
+                <td><%= i+1 %></td>
+                <td><%= row[desgn] %></td>
+                
+                <td><%= row.LL_P %></td>
+                <td><%= row.BB_P %></td>
+                <td><%= row.FTTH_P %></td>
+                <td><%= row.T_P %></td>
+                
+                <td><%= row.LL_C %></td>
+                <td><%= row.BB_C %></td>
+                <td><%= row.FTTH_C %></td>
+                <td><%= row.FTTH_CNV %></td>
+                <td><%= row.T_C %></td>
+                
+                <td><%= row.NET %></td>
+            </tr>
+            <%})%>
+        </tbody>
+    
+        <% if(locals.tablesummary) { %>
+            <tfoot>
+                <tr>
+                <td>Total</td>
+                <% data.metaData.forEach(element => { %>                    
+                   <td><strong><a href="/<%=summarypage%>/TOTAL">
+                    
+                    <%- tablesummary.includes(element.name)?  
+                          data.rows.reduce((total, obj)=>(obj[element.name] + total),0) : "**" %>
+                </strong> </a>
+                </td>
+                <% }); %>
+                </tr>
+            </tfoot>
+        <% } %>
+    </table>
+</div>
