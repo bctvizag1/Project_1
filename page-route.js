@@ -12,6 +12,8 @@ const cookieParser = require("cookie-parser");
 const sessions = require('express-session');
 const oneDay = 1000 * 60 * 60 *24;
 
+const vm_orders = 'sys.vm_orders'
+
 
 // a variable to save a session
 var session;
@@ -39,7 +41,7 @@ router.get('/',async(req,res)=>{
         data:result,
         title:title,
         tablesummary :['COUNT'],
-        summarypage : 'test'
+        summarypage : 'No Page'
     })
 
 
@@ -59,27 +61,27 @@ const summary_Close_Provn = async(req,res)=>{
         return `
     
         with c_ll as (
-            select a.${desgn}, NVL(count(1),0) LL_C from vm_exchange_control a, sys.vm_orders2 b where a.exchange=b.exchange_code 
+            select a.${desgn}, NVL(count(1),0) LL_C from vm_exchange_control a, ${vm_orders} b where a.exchange=b.exchange_code 
             and order_status='Complete' and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
             and order_type='Disconnect' and order_sub_type like 'Disconnect%' and service_type='Landline' 
             and service_sub_type in('Fixed Landline','FMT','Virtual Landline') 
             group by a.${desgn}
             ),
             c_bb as (
-            select a.${desgn}, NVL(count(1),0) BB_C from vm_exchange_control a, sys.vm_orders2 b where a.exchange=b.exchange_code 
+            select a.${desgn}, NVL(count(1),0) BB_C from vm_exchange_control a, ${vm_orders} b where a.exchange=b.exchange_code 
             and order_status='Complete' and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
             and order_type='Modify' and order_sub_type='Broadband Disconnection' 
             and service_type='Landline'
             group by a.${desgn}
             ),
             c_ftth as (
-            select a.${desgn}, NVL(count(1),0) FTTH_C from vm_exchange_control a, sys.vm_orders2 b where a.exchange=b.exchange_code 
+            select a.${desgn}, NVL(count(1),0) FTTH_C from vm_exchange_control a, ${vm_orders} b where a.exchange=b.exchange_code 
             and order_status='Complete' and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
             and order_type='Disconnect'  and service_type='Bharat Fiber BB'
             group by a.${desgn}
             ),
             p_ll as (
-            select a.${desgn}, NVL(count(1),0) LL_P from vm_exchange_control a, sys.vm_orders2 b where a.exchange=b.exchange_code 
+            select a.${desgn}, NVL(count(1),0) LL_P from vm_exchange_control a, ${vm_orders} b where a.exchange=b.exchange_code 
             and order_status='Complete' and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
             and order_type='New'
             and order_sub_type='Provision' and order_sub_type like 'Disconnect%' and service_type='Landline' 
@@ -87,19 +89,19 @@ const summary_Close_Provn = async(req,res)=>{
             group by a.${desgn}
             ),
             p_bb as (
-            select a.${desgn}, NVL(count(1),0) BB_P from vm_exchange_control a, sys.vm_orders2 b where a.exchange=b.exchange_code 
+            select a.${desgn}, NVL(count(1),0) BB_P from vm_exchange_control a, ${vm_orders} b where a.exchange=b.exchange_code 
             and order_status='Complete' and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
             and order_type='Modify' and order_sub_type='Broadband Provision'  
             group by a.${desgn}
             ),
             p_ftth as (
-            select a.${desgn}, NVL(count(1),0) FTTH_P from vm_exchange_control a, sys.vm_orders2 b where a.exchange=b.exchange_code 
+            select a.${desgn}, NVL(count(1),0) FTTH_P from vm_exchange_control a, ${vm_orders} b where a.exchange=b.exchange_code 
             and order_status='Complete' and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
             and order_type='New' and service_sub_type='Bharat Fiber BB'
             group by a.${desgn}
             ),
             cn_ftth as (
-            select a.${desgn}, NVL(count(1),0) FTTH_Cnv from vm_exchange_control a, sys.vm_orders2 b where a.exchange=b.exchange_code 
+            select a.${desgn}, NVL(count(1),0) FTTH_Cnv from vm_exchange_control a, ${vm_orders} b where a.exchange=b.exchange_code 
             and order_status='Complete' and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
             and order_type='Disconnect' and order_sub_type='Bharat Fiber Conversion' and service_type='Landline'
             group by a.${desgn}
@@ -123,6 +125,9 @@ const summary_Close_Provn = async(req,res)=>{
 
     let sql_SDE = gensql('sde');
     let sql_DE = gensql('de');
+    
+    // let sql_SDE = 'Select * from Dual';
+    // let sql_DE = 'Select * from Dual';
 
 
     // console.log(sql_DE);
@@ -137,10 +142,12 @@ const summary_Close_Provn = async(req,res)=>{
     tablesummary = ['LL_P','BB_P','FTTH_P', 'LL_C','BB_C','FTTH_C', 'T_P', 'T_C', 'FTTH_CNV', 'NET'];
     summarypage = 'test/FTTH'
 
-    let result1 = await oracle.queryObject(sql_DE,{},{});    
-    // let result2 = result1; 
-    let result2 = await oracle.queryObject(sql_SDE,{},{});    
-    res.render( 'index0', {
+    let result1 = await oracle.queryObject(sql_DE,{},{});        
+    let result2 = await oracle.queryObject(sql_SDE,{},{});   
+    
+    
+    
+    res.render( 'SummaryReports/index0', {
         data1:result1,
         data2:result2,
         title:title,
@@ -186,7 +193,7 @@ router.get('/NPC_PENDING_ORDERS/:TYPE',(req,res) =>{
     switch (req.params.TYPE) {
       case "LL":
         sql = `
-            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, sys.vm_orders2 b 
+            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, ${vm_orders} b 
             where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' 
             AND   b.order_sub_type like 'Provision%' 
             and  order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  
@@ -202,7 +209,7 @@ router.get('/NPC_PENDING_ORDERS/:TYPE',(req,res) =>{
         break;
       case "BB":
         sql = `
-            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, sys.vm_orders2 b 
+            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, ${vm_orders} b 
             where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and order_type='Modify' 
             and order_sub_type like 'Broadband Provision%' 
             and  order_status not in ('Complete','Open','Cancelled','Submission In Progress')  and phone_no not like '0891-297%'
@@ -222,7 +229,7 @@ router.get('/NPC_PENDING_ORDERS/:TYPE',(req,res) =>{
         SELECT A.SDE sde,
             sum(case when service_sub_type='Bharat Fiber Voice' then 1 else 0 end) VOICE,
             sum(case when service_sub_type='Bharat Fiber BB' then 1 else 0 end) BB,
-            COUNT(1) COUNT FROM vm_exchange_control a, sys.vm_orders2 b where a.exchange=b.exchange_code 
+            COUNT(1) COUNT FROM vm_exchange_control a, ${vm_orders} b where a.exchange=b.exchange_code 
             and  order_status not in ('Complete','Open','Cancelled','Submission In Progress')
             and  b.ssa='VISAKHAPATNAM' and b.order_type='New' AND service_sub_type like 'Bharat Fiber%'     group by sde
         `;
@@ -247,7 +254,7 @@ router.get('/NPC_PENDING_ORDERS/:TYPE',(req,res) =>{
         let t1 =  result.rows.reduce((total, obj)=>(obj.COUNT + total),0);
 
         // console.log(t1);
-        res.render( 'test', {
+        res.render( 'index2', {
             data:result,
             title:title,
             links:links,
@@ -277,7 +284,7 @@ router.get('/NPC_PENDING_ORDERS_SDE/:TYPE/:SDE', (req,res) =>{
         service_sub_type = `and service_sub_type='Fixed Landline' and  phone_no not like '0891-297%'  `;
 
         sql = `
-        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, sys.vm_orders2 b 
+        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, ${vm_orders} b 
         where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' AND  
         b.order_sub_type like 'Provision%' ${sqlSDE} and
         order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  ${service_sub_type}    
@@ -288,7 +295,7 @@ router.get('/NPC_PENDING_ORDERS_SDE/:TYPE/:SDE', (req,res) =>{
         service_sub_type = `and service_sub_type='Fixed Landline' and  phone_no not like '0891-297%'  `;
         
         sql = `
-        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, sys.vm_orders2 b 
+        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, ${vm_orders} b 
         where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' AND  
         b.order_sub_type like 'Provision%' ${sqlSDE} and
         order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  ${service_sub_type}    
@@ -299,7 +306,7 @@ router.get('/NPC_PENDING_ORDERS_SDE/:TYPE/:SDE', (req,res) =>{
       case "FTTH" :
         sql = `
         SELECT b.exchange_code, b.Phone_NO, BB_user_id,Service_sub_type,clarity_service_order,order_no,order_created_date,order_status,pending_task,MAINTENANCE_FRANCHISEE,(trunc(sysdate)-trunc(order_created_date)) pend
-          FROM vm_exchange_control a, sys.vm_orders2 b where a.exchange=b.exchange_code 
+          FROM vm_exchange_control a, ${vm_orders} b where a.exchange=b.exchange_code 
             and  order_status not in ('Complete','Open','Cancelled','Submission In Progress') ${sqlSDE}
             and  b.ssa='VISAKHAPATNAM' and b.order_type='New' AND service_sub_type like 'Bharat Fiber%'   
         `;
@@ -315,7 +322,7 @@ router.get('/NPC_PENDING_ORDERS_SDE/:TYPE/:SDE', (req,res) =>{
     
     oracle.queryObject(sql,{},{}).then(result => {              
         
-        res.render( 'test', {
+        res.render( 'index2', {
             data:result,
             title:`${req.params.TYPE} PENDING ORDERS - SDE  ${req.params.SDE}`            
             
@@ -341,7 +348,7 @@ router.get('/Pending_Faults/:TYPE',async(req,res) =>{
     switch (req.params.TYPE) {
       case "LL":
         sql_SDE = `
-            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, sys.vm_orders2 b 
+            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, ${vm_orders} b 
             where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' 
             AND   b.order_sub_type like 'Provision%' 
             and  order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  
@@ -357,7 +364,7 @@ router.get('/Pending_Faults/:TYPE',async(req,res) =>{
         break;
       case "BB":
         sql_SDE = `
-            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, sys.vm_orders2 b 
+            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, ${vm_orders} b 
             where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and order_type='Modify' 
             and order_sub_type like 'Broadband Provision%' 
             and  order_status not in ('Complete','Open','Cancelled','Submission In Progress')  and phone_no not like '0891-297%'
@@ -429,7 +436,7 @@ router.get('/Pending_Faults_SDE/:TYPE/:SDE', (req,res) =>{
         service_sub_type = `and service_sub_type='Fixed Landline' and  phone_no not like '0891-297%'  `;
 
         sql_SDE = `
-        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, sys.vm_orders2 b 
+        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, ${vm_orders} b 
         where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' AND  
         b.order_sub_type like 'Provision%' ${sqlSDE} and
         order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  ${service_sub_type}    
@@ -440,7 +447,7 @@ router.get('/Pending_Faults_SDE/:TYPE/:SDE', (req,res) =>{
         service_sub_type = `and service_sub_type='Fixed Landline' and  phone_no not like '0891-297%'  `;
         
         sql_SDE = `
-        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, sys.vm_orders2 b 
+        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, ${vm_orders} b 
         where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' AND  
         b.order_sub_type like 'Provision%' ${sqlSDE} and
         order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  ${service_sub_type}    
@@ -467,7 +474,7 @@ router.get('/Pending_Faults_SDE/:TYPE/:SDE', (req,res) =>{
     // console.log(sql_SDE);   
     
     oracle.queryObject(sql_SDE,{},{}).then(result => {   
-        res.render( 'test', {
+        res.render( 'index2', {
             data:result,
             title:`${req.params.TYPE} Pending Faults - SDE ${req.params.SDE}     `            
             
@@ -496,7 +503,7 @@ const CLOUSER = async(req,res) =>{
     switch (req.params.TYPE) {
       case "LL":
         sql_SDE = `
-            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, sys.vm_orders2 b 
+            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, ${vm_orders} b 
             where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' 
             and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
             and b.order_type='Disconnect' 
@@ -513,7 +520,7 @@ const CLOUSER = async(req,res) =>{
         break;
       case "BB":
         sql_SDE = `
-            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, sys.vm_orders2 b 
+            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, ${vm_orders} b 
             where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' 
             and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
             and order_type='Disconnect' 
@@ -535,7 +542,7 @@ const CLOUSER = async(req,res) =>{
         SELECT A.SDE sde,
             sum(case when service_sub_type='Bharat Fiber Voice' then 1 else 0 end) VOICE,
             sum(case when service_sub_type='Bharat Fiber BB' then 1 else 0 end) BB,
-            COUNT(1) COUNT FROM vm_exchange_control a, sys.vm_orders2 b where a.exchange=b.exchange_code 
+            COUNT(1) COUNT FROM vm_exchange_control a, ${vm_orders} b where a.exchange=b.exchange_code 
             and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
             and order_type='Disconnect' and service_sub_type like 'Bharat Fiber%'  
             group by a.sde 
@@ -544,7 +551,7 @@ const CLOUSER = async(req,res) =>{
         SELECT A.DE DE,
             sum(case when service_sub_type='Bharat Fiber Voice' then 1 else 0 end) VOICE,
             sum(case when service_sub_type='Bharat Fiber BB' then 1 else 0 end) BB,
-            COUNT(1) COUNT FROM vm_exchange_control a, sys.vm_orders2 b where a.exchange=b.exchange_code 
+            COUNT(1) COUNT FROM vm_exchange_control a, ${vm_orders} b where a.exchange=b.exchange_code 
             and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
             and order_type='Disconnect' and service_sub_type like 'Bharat Fiber%'  
             group by a.DE 
@@ -628,7 +635,7 @@ router.get('/CLOUSER_SDE/:TYPE/:SDE', (req,res) =>{
         service_sub_type = `and service_sub_type='Fixed Landline' and  phone_no not like '0891-297%'  `;
 
         sql_SDE = `
-        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, sys.vm_orders2 b 
+        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, ${vm_orders} b 
         where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' AND  
         b.order_sub_type like 'Provision%' ${sqlSDE} and
         order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  ${service_sub_type}    
@@ -639,7 +646,7 @@ router.get('/CLOUSER_SDE/:TYPE/:SDE', (req,res) =>{
         service_sub_type = `and service_sub_type='Fixed Landline' and  phone_no not like '0891-297%'  `;
         
         sql_SDE = `
-        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, sys.vm_orders2 b 
+        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, ${vm_orders} b 
         where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' AND  
         b.order_sub_type like 'Provision%' ${sqlSDE} and
         order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  ${service_sub_type}    
@@ -651,7 +658,7 @@ router.get('/CLOUSER_SDE/:TYPE/:SDE', (req,res) =>{
         sql_SDE = `
         select service_sub_type, b.exchange_code,b.PHONE_NO,b.ORDER_TYPE,b.ORDER_SUB_TYPE,b.order_created_date,b.order_comp_date,b.ORDER_STATUS,b.mobile_no,b.disconn_reason,
         (b.CUSTOMER_NAME||','||b.addr_1||','||b.addr_2||','||b.HOUSE_NO||','||b.village_name||','||b.additional_details) address,
-        b.os_amt,c.olt_vendor,c.olt_name,c.work_franchisee from  sys.vm_orders2 b 
+        b.os_amt,c.olt_vendor,c.olt_name,c.work_franchisee from  ${vm_orders} b 
         left join vm_exchange_control a on  a.exchange=b.exchange_code 
         left join vm_ftth_attributes1 c  on  b.phone_no=c.phone and b.SERVICE_TYPE=c.SERVICE_TYPE
          where order_status='Complete' 
@@ -669,7 +676,7 @@ router.get('/CLOUSER_SDE/:TYPE/:SDE', (req,res) =>{
     // console.log(sql_SDE);   
     
     oracle.queryObject(sql_SDE,{},{}).then(result => {   
-        res.render( 'test', {
+        res.render( 'index2', {
             data:result,
             title:`${req.params.TYPE} CLOUSERs - SDE ${req.params.SDE}  between '${fromDt}'  AND '${toDt}'   `            
             
@@ -692,19 +699,28 @@ const CLOUSER_PENDING = async(req,res) =>{
     let links =[];
     let tablesummary = [];
     let summarypage = ''
-    
+
 
 
     switch (req.params.TYPE) {
       case "LL":
         sql_SDE = `
-            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, sys.vm_orders2 b 
-            where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' 
-            and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
-            and b.order_type='Disconnect' 
-            AND   b.order_sub_type like 'Provision%'            
-            and service_sub_type not like '%Fiber%'
-            group by sde order by sde  
+        SELECT A.SDE sde,COUNT(1)  COUNT FROM vm_exchange_control a,sys.vm_orders b 
+        where a.exchange=b.exchange_code
+        and b.ssa='VISAKHAPATNAM' 
+        and b.order_type='Disconnect' 
+        AND  b.order_sub_type like 'Disconnect%' 
+        and  order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  
+        and service_sub_type='Fixed Landline' group by sde
+            `; 
+        sql_DE = `
+        SELECT A.DE sde,COUNT(1)  COUNT FROM vm_exchange_control a,sys.vm_orders b 
+        where a.exchange=b.exchange_code
+        and b.ssa='VISAKHAPATNAM' 
+        and b.order_type='Disconnect' 
+        AND  b.order_sub_type like 'Disconnect%' 
+        and  order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  
+        and service_sub_type='Fixed Landline' group by de
             `; 
         title = 'LL CLOUSERS';
         links = [
@@ -715,7 +731,7 @@ const CLOUSER_PENDING = async(req,res) =>{
         break;
       case "BB":
         sql_SDE = `
-            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, sys.vm_orders2 b 
+            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, ${vm_orders} b 
             where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' 
             and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
             and order_type='Disconnect' 
@@ -735,7 +751,7 @@ const CLOUSER_PENDING = async(req,res) =>{
       case "FTTH":
         sql_SDE = `
         
-        select sde sde,sum(case when order_sub_type='Disconnect' then 1 else 0 end) clsvo,sum(case when order_sub_type='Disconnect Due to NP' then 1 else 0 end) clsnp, count(*) COUNT from sys.vm_orders2 a,vm_exchange_control b 
+        select sde sde,sum(case when order_sub_type='Disconnect' then 1 else 0 end) clsvo,sum(case when order_sub_type='Disconnect Due to NP' then 1 else 0 end) clsnp, count(*) COUNT from ${vm_orders} a,vm_exchange_control b 
         where  service_sub_type like 'Bharat Fiber%'  
         and a.exchange_code=b.exchange and order_type='Disconnect' and  order_status='In Progress' 
         group by sde order by SDE
@@ -743,7 +759,7 @@ const CLOUSER_PENDING = async(req,res) =>{
 
         `;
         sql_DE = `
-        select DE DE,sum(case when order_sub_type='Disconnect' then 1 else 0 end) clsvo,sum(case when order_sub_type='Disconnect Due to NP' then 1 else 0 end) clsnp, count(*) COUNT from sys.vm_orders2 a,vm_exchange_control b 
+        select DE DE,sum(case when order_sub_type='Disconnect' then 1 else 0 end) clsvo,sum(case when order_sub_type='Disconnect Due to NP' then 1 else 0 end) clsnp, count(*) COUNT from ${vm_orders} a,vm_exchange_control b 
         where  service_sub_type like 'Bharat Fiber%'  
         and a.exchange_code=b.exchange and order_type='Disconnect' and  order_status='In Progress' 
         group by DE order by de
@@ -803,7 +819,7 @@ router.get('/CLOUSER_PENDING_SDE/:TYPE/:SDE', (req,res) =>{
         service_sub_type = `and service_sub_type='Fixed Landline' and  phone_no not like '0891-297%'  `;
 
         sql_SDE = `
-        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, sys.vm_orders2 b 
+        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, ${vm_orders} b 
         where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' AND  
         b.order_sub_type like 'Provision%' ${sqlSDE} and
         order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  ${service_sub_type}    
@@ -814,7 +830,7 @@ router.get('/CLOUSER_PENDING_SDE/:TYPE/:SDE', (req,res) =>{
         service_sub_type = `and service_sub_type='Fixed Landline' and  phone_no not like '0891-297%'  `;
         
         sql_SDE = `
-        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, sys.vm_orders2 b 
+        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, ${vm_orders} b 
         where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' AND  
         b.order_sub_type like 'Provision%' ${sqlSDE} and
         order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  ${service_sub_type}    
@@ -825,7 +841,7 @@ router.get('/CLOUSER_PENDING_SDE/:TYPE/:SDE', (req,res) =>{
         case "FTTH":
         sql_SDE = `
         select EXCHANGE_CODE ,PHONE_NO,PENDING_TASK,order_sub_type, CLARITY_SERVICE_ORDER, ORDER_NO, ORDER_CREATED_DATE, ORDER_STATUS,BB_USER_ID,SERVICE_SUB_TYPE,
-        (trunc(sysdate)-trunc(order_created_date)) pend_days,BILL_ACCNT_NO ,customer_name,mobile_no from sys.vm_orders2 a,vm_exchange_control b 
+        (trunc(sysdate)-trunc(order_created_date)) pend_days,BILL_ACCNT_NO ,customer_name,mobile_no from ${vm_orders} a,vm_exchange_control b 
         where service_sub_type like 'Bharat Fiber%'  and a.exchange_code=b.exchange 
         and order_sub_type in ('Disconnect Due to NP','Disconnect') 
         and  order_status='In Progress' ${sqlSDE} 
@@ -841,7 +857,7 @@ router.get('/CLOUSER_PENDING_SDE/:TYPE/:SDE', (req,res) =>{
     // console.log(sql_SDE);   
     
     oracle.queryObject(sql_SDE,{},{}).then(result => {   
-        res.render( 'test', {
+        res.render( 'index2', {
             data:result,
             title:`${req.params.TYPE} C Pending- SDE ${req.params.SDE}     `            
             
@@ -869,7 +885,7 @@ const CompletedOrders = async(req,res) => {
     switch (req.params.TYPE) {
       case "LL":
         sql_SDE = `
-            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, sys.vm_orders2 b 
+            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, ${vm_orders} b 
             where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' 
             and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
             and b.order_type='Disconnect' 
@@ -886,7 +902,7 @@ const CompletedOrders = async(req,res) => {
         break;
       case "BB":
         sql_SDE = `
-            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, sys.vm_orders2 b 
+            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, ${vm_orders} b 
             where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' 
             and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
             and order_type='Disconnect' 
@@ -909,7 +925,7 @@ const CompletedOrders = async(req,res) => {
         select a.sde sde,
         (sum(case when service_sub_type='Bharat Fiber Voice' then 1 else 0 end)) Voice,
         (sum(case when service_sub_type='Bharat Fiber BB' then 1 else 0 end)) bb,count(1) COUNT
-        from vm_exchange_control a, sys.vm_orders2 b  where a.exchange=b.exchange_code 
+        from vm_exchange_control a, ${vm_orders} b  where a.exchange=b.exchange_code 
         and  order_status='Complete' 
         and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
         and order_type='New' and service_sub_type like 'Bharat Fiber%' group by a.sde 
@@ -920,7 +936,7 @@ const CompletedOrders = async(req,res) => {
         select a.de de,
         (sum(case when service_sub_type='Bharat Fiber Voice' then 1 else 0 end)) Voice,
         (sum(case when service_sub_type='Bharat Fiber BB' then 1 else 0 end)) bb,count(1) COUNT
-        from vm_exchange_control a, sys.vm_orders2 b  where a.exchange=b.exchange_code 
+        from vm_exchange_control a, ${vm_orders} b  where a.exchange=b.exchange_code 
         and  order_status='Complete' 
         and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
         and order_type='New' and service_sub_type like 'Bharat Fiber%' group by a.de 
@@ -993,7 +1009,7 @@ router.get('/CompletedOrders_SDE/:TYPE/:SDE', (req,res) =>{
         service_sub_type = `and service_sub_type='Fixed Landline' and  phone_no not like '0891-297%'  `;
 
         sql_SDE = `
-        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, sys.vm_orders2 b 
+        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, ${vm_orders} b 
         where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' AND  
         b.order_sub_type like 'Provision%' ${sqlSDE} and
         order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  ${service_sub_type}    
@@ -1004,7 +1020,7 @@ router.get('/CompletedOrders_SDE/:TYPE/:SDE', (req,res) =>{
         service_sub_type = `and service_sub_type='Fixed Landline' and  phone_no not like '0891-297%'  `;
         
         sql_SDE = `
-        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, sys.vm_orders2 b 
+        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, ${vm_orders} b 
         where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' AND  
         b.order_sub_type like 'Provision%' ${sqlSDE} and
         order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  ${service_sub_type}    
@@ -1016,7 +1032,7 @@ router.get('/CompletedOrders_SDE/:TYPE/:SDE', (req,res) =>{
         sql_SDE = `
 
         select b.service_sub_type,b.exchange_code, b.ORDER_NO ,b.PHONE_NO,trunc(b.ORDER_CREATED_DATE) Created_DT,
-        trunc(b.indoor_comp_date) ID_Comp_DT, trunc(b.order_comp_date) COMPLETED_DT,b.ORDER_TYPE,b.ORDER_SUB_TYPE,b.ORDER_STATUS,b.mobile_no,c.olt_ip,c.olt_owner,b.clarity_service_order,b.CUSTOMER_NAME from vm_exchange_control a, sys.vm_orders2 b, system.vm_ftth_attributes1 c
+        trunc(b.indoor_comp_date) ID_Comp_DT, trunc(b.order_comp_date) COMPLETED_DT,b.ORDER_TYPE,b.ORDER_SUB_TYPE,b.ORDER_STATUS,b.mobile_no,c.olt_ip,c.olt_owner,b.clarity_service_order,b.CUSTOMER_NAME from vm_exchange_control a, ${vm_orders} b, system.vm_ftth_attributes1 c
         where a.exchange=b.exchange_code and b.phone_no=c.phone(+) 
         and b.service_type=c.service_type(+) 
         and b.order_status='Complete' 
@@ -1034,7 +1050,7 @@ router.get('/CompletedOrders_SDE/:TYPE/:SDE', (req,res) =>{
     // console.log(sql_SDE);   
     
     oracle.queryObject(sql_SDE,{},{}).then(result => {   
-        res.render( 'test', {
+        res.render( 'index2', {
             data:result,
             title:`${req.params.TYPE} Completed Orders - SDE ${req.params.SDE}  between '${fromDt}'  AND '${toDt}'   `            
             
@@ -1058,7 +1074,7 @@ const LL_Provisions_service_sub_type_wise = (req,res) =>{
 
 
     const sql = `
-    select Order_sub_type,service_type,decode(service_sub_type,'Virtual Landline','Aseem','FMT','LFMT',service_sub_type) ser_type,count(1) COUNT from sys.vm_orders2   where  order_status='Complete' and   trunc(order_comp_date) between '${fromDt}' AND '${toDt}' and 
+    select Order_sub_type,service_type,decode(service_sub_type,'Virtual Landline','Aseem','FMT','LFMT',service_sub_type) ser_type,count(1) COUNT from ${vm_orders}   where  order_status='Complete' and   trunc(order_comp_date) between '${fromDt}' AND '${toDt}' and 
     order_type='New'  and order_sub_type='Provision'  and service_sub_type not like 'FTTH%'  group by Order_sub_type,service_type,service_sub_type
     `; 
 
@@ -1075,7 +1091,7 @@ const LL_Provisions_service_sub_type_wise = (req,res) =>{
     oracle.queryObject(sql,{},{}).then(result => {      
         // res.json(result)
         // console.log("Displayed: LL_Provisions_service_sub_type_wise", startOfMonth, endOfMonth);
-        res.render( 'test', {
+        res.render( 'index2', {
             data:result,
             title:title,
             links:[
@@ -1108,7 +1124,7 @@ router.get('/LL_Provisions/:SER_TYPE',(req,res)=>{
     let summarypage = ''
 
 
-    const sql = `select a.sde SDE,count(1) COUNT from vm_exchange_control a, sys.vm_orders2 b  where a.exchange=b.exchange_code and  order_status='Complete' and 
+    const sql = `select a.sde SDE,count(1) COUNT from vm_exchange_control a, ${vm_orders} b  where a.exchange=b.exchange_code and  order_status='Complete' and 
     trunc(ORDER_comp_date) between '${fromDt}' AND '${toDt}' and
     order_type='New'  and order_sub_type='Provision' and phone_no not like '0891-297%' 
     and service_sub_type=decode('${req.params.SER_TYPE}', 'Aseem',
@@ -1132,7 +1148,7 @@ router.get('/LL_Provisions/:SER_TYPE',(req,res)=>{
         // res.json(result)
         // console.log("Displayed: LL_Provisions_service_sub_type_wise", startOfMonth, endOfMonth);
 
-        res.render( 'test', {
+        res.render( 'index2', {
             data:result,
             title:title,
             links:[
@@ -1162,7 +1178,7 @@ const FTTH_Provision_OLT = async (req, res) => {
 
     select b.olt_ip  OLT, (sum(case when service_sub_type='Bharat Fiber Voice' then 1 else 0 end)) 
         Voice,(sum(case  when service_sub_type='Bharat Fiber BB' then 1 else 0 end)) bb,count(1) COUNT
-        from  sys.vm_orders2 a, sys.vm_ftth_attributes1 b 
+        from  ${vm_orders} a, sys.vm_ftth_attributes1 b 
         where a.phone_no=b.phone and  order_status='Complete' 
         and trunc(order_comp_date) between '${fromDt}' AND '${toDt}'
         and a.service_type=b.service_type  
@@ -1175,7 +1191,7 @@ const FTTH_Provision_OLT = async (req, res) => {
     select b.work_franchisee  OLT, 
         (sum(case when service_sub_type='Bharat Fiber Voice' then 1 else 0 end)) 
         Voice,(sum(case  when service_sub_type='Bharat Fiber BB' then 1 else 0 end)) bb,count(1) Total
-        from  sys.vm_orders2 a, sys.vm_ftth_attributes1 b 
+        from  ${vm_orders} a, sys.vm_ftth_attributes1 b 
         where a.phone_no=b.phone and  order_status='Complete' 
         and trunc(order_comp_date) between '${fromDt}' AND '${toDt}'
         and a.service_type=b.service_type  
@@ -1241,7 +1257,7 @@ router.get('/FTTH_Provision_OLT/:order_type/:OLT',(req,res)=>{
     trunc(b.order_comp_date) Completed,
     b.ORDER_TYPE,b.ORDER_SUB_TYPE,b.ORDER_STATUS,b.mobile_no,c.olt_ip,
     c.olt_owner,b.clarity_service_order,b.CUSTOMER_NAME,c.WORK_FRANCHISEE,c.MAINTENANCE_FRANCHISEE 
-    from vm_exchange_control a, sys.vm_orders2 b,sys.vm_ftth_attributes1 c  
+    from vm_exchange_control a, ${vm_orders} b,sys.vm_ftth_attributes1 c  
     where a.exchange=b.exchange_code 
     and b.phone_no=c.phone(+) 
     and b.service_type=c.service_type(+) 
@@ -1264,7 +1280,7 @@ router.get('/FTTH_Provision_OLT/:order_type/:OLT',(req,res)=>{
 
 
     oracle.queryObject(sql,{},{}).then(result => {      
-        res.render( 'test', {
+        res.render( 'index2', {
             data:result,
             title:title
         })
@@ -1286,7 +1302,7 @@ const FTTH_Closures_OLT = (req,res) =>{
 
     select b.olt_ip  OLT,(sum(case when service_sub_type='Bharat Fiber Voice' then 1 else 0 end))
      Voice,(sum(case when service_sub_type='Bharat Fiber BB' then 1 else 0 end)) bb,count(1) COUNT
-        from  sys.vm_orders2 a,system.VM_FTTH_W_FCM_SERVICE b 
+        from  ${vm_orders} a,system.VM_FTTH_W_FCM_SERVICE b 
         where a.phone_no=b.phone_no and  order_status='Complete' 
         and trunc(order_comp_date) between '${fromDt}' AND '${toDt}'
         and a.service_type=b.service_type and order_type='Disconnect' 
@@ -1304,7 +1320,7 @@ const FTTH_Closures_OLT = (req,res) =>{
     }
     
     oracle.queryObject(sql,{},{}).then(result => {      
-        res.render( 'test', {
+        res.render( 'index2', {
             data:result,
             title:title,
             links:[
@@ -1341,7 +1357,7 @@ router.get('/FTTH_Closures_OLT/:OLT',(req,res)=>{
     trunc(b.order_comp_date) Completed,
     b.ORDER_TYPE,b.ORDER_SUB_TYPE,b.ORDER_STATUS,b.mobile_no,c.olt_ip,
     c.olt_owner,b.clarity_service_order,b.CUSTOMER_NAME,c.WORK_FRANCHISEE,c.MAINTENANCE_FRANCHISEE 
-    from vm_exchange_control a, sys.vm_orders2 b,sys.vm_ftth_attributes1 c  
+    from vm_exchange_control a, ${vm_orders} b,sys.vm_ftth_attributes1 c  
     where a.exchange=b.exchange_code 
     and b.phone_no=c.phone(+) 
     and b.service_type=c.service_type(+) 
@@ -1359,7 +1375,7 @@ router.get('/FTTH_Closures_OLT/:OLT',(req,res)=>{
 
 
     oracle.queryObject(sql,{},{}).then(result => {     
-        res.render( 'test', {
+        res.render( 'index2', {
             data:result,
             title:title
         })

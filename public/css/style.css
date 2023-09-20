@@ -14,7 +14,7 @@
     margin: 10px;
 }
 
-.table0 table, table0 td, table0 th {
+.table0 table, .table0 td, .table0 th {
     border: 1px solid;
     text-align: center;
 }
@@ -22,4 +22,15 @@
 .table0 table td:nth-child(2) {
     font-weight: bold;
     text-align: left;
+}
+
+
+.provisions {
+    background-color: rgba(154, 245, 154, 0.67);
+}
+
+
+
+.closures {
+   background-color: rgba(249, 165, 221, 0.452); 
 }
