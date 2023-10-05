@@ -15,20 +15,20 @@
                     <td><%= i+1 %></td>
                     <% for (const [key, value] of Object.entries(row)) { %>
                         <% if (locals.links) { 
-                            let linkf=links.filter(obj=> obj.feild===key)
+                            let linkf = links.filter(obj=>obj.feild===key)
                             %>
-                            <td>
+                            <td>                          
                                 <% if(linkf.length>0) { %>
                                     <a href="/<%=linkf[0].page%>/<%=row[linkf[0].params]%>">
                                         <%= value %>
                                     </a>
                                     <% } else { %>
-                                        <%= value %>
-                                            <% } %>
+                                          <%= value %>
+                                    <% } %>
                             </td>
                         <% } else { %>
                             <td>
-                                <%= typeof value==='object' && value!= null ? moment(value).format('DD-MMM-YYYY') : value %>
+                                <%= typeof value==='object' && value!= null ? moment(value).format('DD-MMM-YYYY') :  value %>
                             </td>
                             <% } %>
                     <% } %>
@@ -42,16 +42,20 @@
                     <tr>
                     <td>Total</td>
                     <% data.metaData.forEach(element => { %>                    
-                       <td><strong><a href="/<%=summarypage%>/TOTAL">
-                        
+                       <td><strong> 
+                        <a href="/<%=summarypage%>/TOTAL">                        
                         <%- tablesummary.includes(element.name)?  
                               data.rows.reduce((total, obj)=>(obj[element.name] + total),0) : "**" %>
-                    </strong> </a>
-                    </td>
+                            </a>
+                    </strong></td>
                     <% }); %>
                     </tr>
                 </tfoot>
             <% } %>
     
     </table>
+
+   
+
+
     

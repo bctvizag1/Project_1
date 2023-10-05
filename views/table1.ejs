@@ -1,7 +1,6 @@
 <div class="container-fluid">
     <!-- <table id="example" class="display compact" style="width:95%"> -->
-    <table   class="jqueryTable table table-sm table-striped table-bordered" style="width:95%">
-      
+        <table class="dataTable display compact" style="width:100%">      
         <thead>
             <tr>
                 <th>Sno</th>
@@ -38,8 +37,6 @@
         
         </tbody>
 
-
-
         <% if(locals.footer) { %>
             <tfoot>
                 <tr>
@@ -58,16 +55,14 @@
                 <tr>
                 <td>Total</td>
                 <% data.metaData.forEach(element => { %>                    
-                   <td><strong><a href="/<%=summarypage%>/TOTAL">
-                    
+                   <td><strong><a href="/<%=summarypage%>/TOTAL">                    
                     <%- tablesummary.includes(element.name)?  
                           data.rows.reduce((total, obj)=>(obj[element.name] + total),0) : "**" %>
-                </strong> </a>
+                </a></strong> 
                 </td>
                 <% }); %>
                 </tr>
             </tfoot>
         <% } %>
-    </table>
-        
+    </table>        
 </div>

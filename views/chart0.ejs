@@ -1,0 +1,44 @@
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<div id="chart1"></div>
+<script type="text/javascript">
+
+    // Load the Visualization API and the corechart package.
+    google.charts.load('current', { 'packages': ['corechart'] });
+
+    // Set a callback to run when the Google Visualization API is loaded.
+    google.charts.setOnLoadCallback(drawChart);
+
+    let data = <%- JSON.stringify(data.rows) -%>;
+    let x = '<%=x%>';
+    let y = '<%=y%>';
+    console.log(data);
+
+    function drawChart(data, x , y) {
+
+        // Create a new Google Visualization DataTable
+        const dataTable = new google.visualization.DataTable();
+
+        // Add the first two properties as columns
+        dataTable.addColumn("string", x);
+        dataTable.addColumn("number", y);
+
+        // Add the object data to the DataTable
+        for (const object of data) {
+            dataTable.addRow([object[x], object[y]]);
+        }
+
+        // Create a new Google Charts LineChart object
+        const chart = new google.visualization.LineChart(
+            document.getElementById("chart1")
+        );
+
+        // Draw the chart using the DataTable
+        chart.draw(dataTable, {
+            title: "Test Chart",
+            legend: { position: "bottom" },
+        });
+
+    }
+
+
+</script>

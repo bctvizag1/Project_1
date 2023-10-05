@@ -41,6 +41,7 @@ const oracleDbRelease = function(conn) {
   
   
   function queryObject(sql, bindParams, options, conn="orcl") {
+    //   options['outFormat'] = oracledb.ARRAY;   
       options['outFormat'] = oracledb.OBJECT; // default is oracledb.ARRAY
       
       return queryArray_orcl(sql, bindParams, options, conn);

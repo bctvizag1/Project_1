@@ -28,10 +28,14 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:false}));
 
 
+let test =function(x) {
+    return typeof x
+}
 
 //Create Welcome Page
 app.use((req, res, next)=>{    
     res.locals.moment = moment;
+    res.locals.test  = test;
     next();
   });
 

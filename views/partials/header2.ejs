@@ -13,8 +13,6 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
 
-
-
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
@@ -31,12 +29,19 @@
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
         crossorigin="anonymous"></script>
 
+
+
+        <link rel="stylesheet" href="/css/style.css"/>       
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-sm navbar-light bg-light">
+    <div class="container-fluid">
+    <nav class="navbar navbar-expand-sm navbar-light bg-info">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">BSNL Vizag</a>
+            <a class="navbar-brand" href="#"> 
+                    <img src="/images/bsnl logo.png" width="30" height="30" class="d-inline-block align-top" alt="">
+                 <span>BSNL Vizag</span>
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
                 aria-label="Toggle navigation">
@@ -103,18 +108,16 @@
                         <li> </li>
                         <li><a class="dropdown-item" href="/Pending_Faults/FTTH">Pending Faults</a> </li>
                         <li><a class="dropdown-item" href="/CLOUSER_PENDING/FTTH">Closurers Pending</a> </li>
-                        <li>
-                            <div class="dropdown-divider"></div>
-                        </li>
+
+                        <li><div class="dropdown-divider"></div></li>
+                        
                         <li><a class="dropdown-item" href="/FTTH_Provision_OLT/New">FTTH Provisions OLT IP wise</a></li>
-                        <li><a class="dropdown-item" href="/FTTH_Provision_OLT/Disconnect">FTTH Closures OLT IP wise</a>
-                        </li>
-                        <li><a class="dropdown-item" href="/summary_Close_Provn">Provision and Closurers Summary</a>
-                        </li>
+                        <li><a class="dropdown-item" href="/FTTH_Provision_OLT/Disconnect">FTTH Closures OLT IP wise</a></li>
+                        
                         <li><a class="dropdown-item" href="/test">TEST</a></li>
 
 
-                        <hr class="dropdown-divider">
+                        
                     </ul>    
                 </li>
                 
@@ -147,9 +150,9 @@
 
 
 
-                <li class="nav-item">
+                <!-- <li class="nav-item">
                     <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
-                </li>
+                </li> -->
                 </ul>
                 <!-- <form class="d-flex">
               <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
@@ -159,6 +162,8 @@
         </div>
     </nav>
 
+    <!-- title Bar and Calender  -->
+
     <div class="d-flex justify-content-between bg-secondary text-white">
         <div class="p-2">
             <span class="badge badge-primary">Report : </span>
@@ -166,14 +171,13 @@
         </div>
         <div class="dtcalender">
             <% if(locals.calender) { %>
-                <form class="form-inline m-2 " method="post">
-                    <input class="form-control mr-sm-2 form-control-sm" type="date"
-                         placeholder="Search" aria-label="Search" name="fromDt"
+                <form class="row" method="post">
+                    <input class="col"  name="fromDt" type="date"
                           value="<%= calender.startOfMonth%>">
-                    <span> -- </span>
-                    <input class="form-control mr-sm-2 form-control-sm" type="date" 
-                    placeholder="Search" aria-label="Search" name="toDt" value="<%= calender.endOfMonth%>">
-                    <button class="btn btn-success my-2 my-sm-0 btn-sm" type="submit">Get Data</button>
+                    <div class="col-auto"> to </div>
+                    <input class="col"  name="toDt"  type="date"
+                    value="<%= calender.endOfMonth%>">
+                    <button class="col btn btn-success  btn-sm" type="submit">Get Data</button>
                 </form>
                 <% } %>  
         </div>

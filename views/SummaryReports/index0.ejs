@@ -1,12 +1,33 @@
-<%- include('./../test_H.ejs');  -%>
+
+<%- include('./../partials/header2.ejs'); -%>
+
 <div class="row">
-    <div class="col table0 px-2">
-        <%- include('table0.ejs',{data:data1, desgn:'DE'})  -%>
+    <div class="col table0 px-2 mt-1">
+        <%- include('table0.ejs', {data:data1, desgn:'DE'})  -%>     
     </div>
-    <div class="col table0 px-2">
+    <div class="col table0 px-2 mt-1">
         <%- include('table0.ejs',{data:data2, desgn:'SDE'})  -%>
+       
     </div>
 </div>
 
 
-<%- include('./../test_F.ejs');  -%>
+<script type="text/javascript" src="https://unpkg.com/xlsx@0.15.1/dist/xlsx.full.min.js"></script>
+    <script>
+        
+        $('.exl').click(function(){
+            let data = $(this).next();
+            htmlTableToExcel(data[0]);
+
+        })
+        function htmlTableToExcel(data,type='xlsx'){                      
+        // var data = document.getElementById('tblToExcl');
+        var excelFile = XLSX.utils.table_to_book(data, {sheet: "sheet1"});
+        XLSX.write(excelFile, { bookType: type, bookSST: true, type: 'base64' });
+        XLSX.writeFile(excelFile, 'ExportedFile:HTMLTableToExcel.' + type);
+       }
+
+
+
+    </script>
+<%- include('./../partials/footer2.ejs');  -%> 
