@@ -599,7 +599,7 @@ const CLOUSER = async(req,res) =>{
 router.get('/CLOUSER/:TYPE', CLOUSER );
 router.post('/CLOUSER/:TYPE', CLOUSER );
 
-router.get('/CLOUSER_SDE/:TYPE/:SDE', (req,res) =>{
+const CLOUSER_SDE = (req,res) =>{
 
     const {startOfMonth, endOfMonth, fromDt, toDt} = calenderMiddleware(req)
 
@@ -656,19 +656,21 @@ router.get('/CLOUSER_SDE/:TYPE/:SDE', (req,res) =>{
         break;
     }
 
-    // console.log(sql_SDE);   
+    console.log(sql_SDE);   
     
     oracle.queryObject(sql_SDE,{},{}).then(result => {   
         res.render( 'index2', {
             data:result,
-            title:`${req.params.TYPE} CLOUSERs - SDE ${req.params.SDE}  between '${fromDt}'  AND '${toDt}'   `            
+            title:`${req.params.TYPE} CLOUSERs - SDE ${req.params.SDE}  between '${fromDt}'  AND '${toDt}'   `,
+            calender: {startOfMonth:startOfMonth, 
+                endOfMonth:endOfMonth}            
             
         })
                 
     })    
 }
-
-);
+router.get('/CLOUSER_SDE/:TYPE/:SDE', CLOUSER_SDE);
+router.post('/CLOUSER_SDE/:TYPE/:SDE', CLOUSER_SDE);
 //#endregion CLOUSER
 
 //#region Closure Pending orders
@@ -785,15 +787,12 @@ router.get('/CLOUSER_PENDING/:TYPE', CLOUSER_PENDING );
 
 router.post('/CLOUSER_PENDING/:TYPE', CLOUSER_PENDING );
 
-router.get('/CLOUSER_PENDING_SDE/:TYPE/:SDE', (req,res) =>{
-
-   
+router.get('/CLOUSER_PENDING_SDE/:TYPE/:SDE', (req,res) =>{   
 
     let sql_SDE = ""
 
     let sqlSDE = '';
-    let service_sub_type = '';
-    
+    let service_sub_type = '';    
 
     if(req.params.SDE !='TOTAL') {
         sqlSDE = `and  a.SDE = '${req.params.SDE}'`;
@@ -1147,8 +1146,6 @@ router.get('/LL_Provisions/:SER_TYPE',(req,res)=>{
 });
 //#endregion LL_Provisions_service_sub_type_wise
 
-
-
 //#region  Provisions OLTL WISE
 const FTTH_Provision_OLT = async (req, res) => {
 
@@ -1374,6 +1371,9 @@ router.get('/FTTH_Closures_OLT/:OLT',(req,res)=>{
 function calenderMiddleware(req){
 
     session = req.session
+
+    console.log("body", req.body.fromDt, req.body.toDt);
+    console.log("session", req.session.fromDt, req.session.toDt);
     
     let fromDt = moment().startOf('month').format('YYYY-MM-DD');
     let toDt   = moment().endOf('month').format('YYYY-MM-DD');
@@ -1384,19 +1384,23 @@ function calenderMiddleware(req){
     if(req.body.fromDt){
         fromDt = new Date(req.body.fromDt)
         toDt = new Date(req.body.toDt)
+       
+    } else if(req.session.fromDt) {
+        fromDt = new Date(req.session.fromDt)
+        toDt = new Date(req.session.toDt)
 
-        startOfMonth = moment(fromDt).format('YYYY-MM-DD'); 
-        endOfMonth = moment(toDt).format('YYYY-MM-DD'); 
     }
+
+    startOfMonth = moment(fromDt).format('YYYY-MM-DD'); 
+    endOfMonth = moment(toDt).format('YYYY-MM-DD'); 
 
     fromDt = moment(fromDt).format('DD-MMM-YYYY')
     toDt = moment(toDt).format('DD-MMM-YYYY')
 
     req.session.fromDt = fromDt
     req.session.toDt = toDt
-    
 
-return {startOfMonth, endOfMonth, fromDt, toDt}
+    return {startOfMonth, endOfMonth, fromDt, toDt}
 
 }
 
