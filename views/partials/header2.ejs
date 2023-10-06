@@ -64,10 +64,10 @@
                                     title="LL_Provisions_service_sub_type_wise">
                                     Land Line Provisions</a>
                             </li>
-                            <li><a class="dropdown-item" href="/NPC_PENDING_ORDERS/LL">NPC_PENDING_ORDERS</a></li>
+                            <li><a class="dropdown-item" href="/NPC_PENDING_ORDERS/LL">NPC Pending Orders</a></li>
                             <li><a class="dropdown-item" href="/faults">LL Faults</a></li>
-                            <li><a class="dropdown-item" href="/CLOUSER/LL">CLOUSER</a></li>
-                            <li><a class="dropdown-item" href="/CLOUSER_PENDING/LL">Closurers Pending</a> </li>
+                            <li><a class="dropdown-item" href="/CLOUSER/LL">Closure</a></li>
+                            <li><a class="dropdown-item" href="/CLOUSER_PENDING/LL">Closure Pending</a> </li>
 
                             <li><a class="dropdown-item" href="#">Another action</a></li>
                             <li>
@@ -102,12 +102,12 @@
                         FTTH Reports
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="/CompletedOrders/FTTH">Completed Orders</a></li>
-                        <li><a class="dropdown-item" href="/CLOUSER/FTTH">Closurers</a></li>
+                        <li><a class="dropdown-item" href="/CompletedOrders/FTTH">NPC Completed Orders</a></li>
+                        <li><a class="dropdown-item" href="/CLOUSER/FTTH">Closures Orders</a></li>
                         <li><a class="dropdown-item" href="/NPC_PENDING_ORDERS/FTTH">NPC Pending Orders</a></li>
                         <li> </li>
                         <li><a class="dropdown-item" href="/Pending_Faults/FTTH">Pending Faults</a> </li>
-                        <li><a class="dropdown-item" href="/CLOUSER_PENDING/FTTH">Closurers Pending</a> </li>
+                        <li><a class="dropdown-item" href="/CLOUSER_PENDING/FTTH">Closure Pending</a> </li>
 
                         <li><div class="dropdown-divider"></div></li>
                         
@@ -167,7 +167,7 @@
     <div class="d-flex justify-content-between bg-secondary text-white">
         <div class="p-2">
             <span class="badge badge-primary">Report : </span>
-                <span class="font-weight-bold"> <%=title %></span> 
+                <span class="font-weight-bold"> <%-title -%></span> 
         </div>
         <div class="dtcalender">
             <% if(locals.calender) { %>

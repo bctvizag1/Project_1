@@ -182,8 +182,9 @@ router.post('/LL_Provisions_service_sub_type_wise',contrl.LL_Provisions_service_
 */
 
 //#region NPC_PENDING_ORDERS
-router.get('/NPC_PENDING_ORDERS/:TYPE',(req,res) =>{
-    let sql = '';
+router.get('/NPC_PENDING_ORDERS/:TYPE',async (req,res) =>{
+    let sql_SDE = '';
+    let sql_DE = '';
     let title = '';
     let links =[];
     let tablesummary = [];
@@ -193,14 +194,22 @@ router.get('/NPC_PENDING_ORDERS/:TYPE',(req,res) =>{
 
     switch (req.params.TYPE) {
       case "LL":
-        sql = `
+        sql_SDE = `
             SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, ${vm_orders} b 
             where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' 
             AND   b.order_sub_type like 'Provision%' 
             and  order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  
             and service_sub_type='Fixed Landline' and  phone_no not like '0891-297%' 
             group by sde order by sde  
-            `; 
+            `;
+        sql_DE = `
+        SELECT A.de de,COUNT(1) count FROM vm_exchange_control a, ${vm_orders} b 
+        where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' 
+        AND   b.order_sub_type like 'Provision%' 
+        and  order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  
+        and service_sub_type='Fixed Landline' and  phone_no not like '0891-297%' 
+        group by de order by de  
+        `;     
         title = 'LL NPC Pending Orders';
         links = [
             {feild:"COUNT", params:`SDE` , page:'NPC_PENDING_ORDERS_SDE/LL'}
@@ -209,13 +218,20 @@ router.get('/NPC_PENDING_ORDERS/:TYPE',(req,res) =>{
         summarypage = 'NPC_PENDING_ORDERS_SDE/LL'
         break;
       case "BB":
-        sql = `
+        sql_SDE = `
             SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, ${vm_orders} b 
             where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and order_type='Modify' 
             and order_sub_type like 'Broadband Provision%' 
             and  order_status not in ('Complete','Open','Cancelled','Submission In Progress')  and phone_no not like '0891-297%'
             group by a.sde             
-            `; 
+            `;
+        sql_DE = `
+        SELECT A.DE de,COUNT(1) count FROM vm_exchange_control a, ${vm_orders} b 
+        where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and order_type='Modify' 
+        and order_sub_type like 'Broadband Provision%' 
+        and  order_status not in ('Complete','Open','Cancelled','Submission In Progress')  and phone_no not like '0891-297%'
+        group by a.de             
+        `; 
         
         title = 'BB NPC Pending Orders'
         
@@ -226,13 +242,22 @@ router.get('/NPC_PENDING_ORDERS/:TYPE',(req,res) =>{
         summarypage ='NPC_PENDING_ORDERS_SDE/BB'
         break;
       case "FTTH":
-        sql = `
+        sql_SDE = `
         SELECT A.SDE sde,
             sum(case when service_sub_type='Bharat Fiber Voice' then 1 else 0 end) VOICE,
             sum(case when service_sub_type='Bharat Fiber BB' then 1 else 0 end) BB,
             COUNT(1) COUNT FROM vm_exchange_control a, ${vm_orders} b where a.exchange=b.exchange_code 
             and  order_status not in ('Complete','Open','Cancelled','Submission In Progress')
             and  b.ssa='VISAKHAPATNAM' and b.order_type='New' AND service_sub_type like 'Bharat Fiber%'     group by sde
+        `;
+
+        sql_DE = `
+        SELECT A.DE de,
+            sum(case when service_sub_type='Bharat Fiber Voice' then 1 else 0 end) VOICE,
+            sum(case when service_sub_type='Bharat Fiber BB' then 1 else 0 end) BB,
+            COUNT(1) COUNT FROM vm_exchange_control a, ${vm_orders} b where a.exchange=b.exchange_code 
+            and  order_status not in ('Complete','Open','Cancelled','Submission In Progress')
+            and  b.ssa='VISAKHAPATNAM' and b.order_type='New' AND service_sub_type like 'Bharat Fiber%'     group by de
         `;
         title = 'FTTH NPC Pending Orders';
         links = [
@@ -246,10 +271,22 @@ router.get('/NPC_PENDING_ORDERS/:TYPE',(req,res) =>{
       default:
         break;
     }
+
+
+    let result1 = await oracle.queryObject(sql_DE,{},{});
+    let result2 = await oracle.queryObject(sql_SDE,{},{});
+    res.render( 'test_2', {
+        data1:result1,
+        data2:result2,
+        title:title,
+        links:links,            
+        tablesummary:tablesummary,
+        summarypage: summarypage
+    })
       
    
-
-    oracle.queryObject(sql,{},{}).then(result => {        
+/*
+    oracle.queryObject(sql_SDE,{},{}).then(result => {        
 
         // res.json({data:result})
         let t1 =  result.rows.reduce((total, obj)=>(obj.COUNT + total),0);
@@ -266,7 +303,7 @@ router.get('/NPC_PENDING_ORDERS/:TYPE',(req,res) =>{
             
         })
                 
-    })    
+    })   */ 
 });
 
 router.get('/NPC_PENDING_ORDERS_SDE/:TYPE/:SDE', (req,res) =>{
