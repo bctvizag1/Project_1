@@ -85,7 +85,7 @@ const summary_Close_Provn = async(req,res)=>{
             select a.${desgn}, NVL(count(1),0) LL_P from vm_exchange_control a, ${vm_orders} b where a.exchange=b.exchange_code 
             and order_status='Complete' and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
             and order_type='New'
-            and order_sub_type='Provision' and service_type='Landline' and service_sub_type='Fixed Landline' 
+            and order_sub_type='Provision' and service_type='Landline' 
             and service_sub_type in('Fixed Landline','FMT','Virtual Landline') 
             group by a.${desgn}
             ),
@@ -693,7 +693,7 @@ const CLOUSER_SDE = (req,res) =>{
         break;
     }
 
-    console.log(sql_SDE);   
+    //console.log(sql_SDE);   
     
     oracle.queryObject(sql_SDE,{},{}).then(result => {   
         res.render( 'index2', {
@@ -907,13 +907,13 @@ const CompletedOrders = async(req,res) => {
     switch (req.params.TYPE) {
       case "LL":
         sql_SDE = `
-            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, ${vm_orders} b 
-            where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' 
-            and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
-            and b.order_type='Disconnect' 
-            AND   b.order_sub_type like 'Provision%'            
-            and service_sub_type not like '%Fiber%'
-            group by sde order by sde  
+        select a.sde sde,
+        (sum(case when service_sub_type='Bharat Fiber Voice' then 1 else 0 end)) Voice,
+        (sum(case when service_sub_type='Bharat Fiber BB' then 1 else 0 end)) bb,count(1) COUNT
+        from vm_exchange_control a, ${vm_orders} b  where a.exchange=b.exchange_code 
+        and  order_status='Complete' 
+        and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
+        and order_type='New' and service_sub_type like 'Bharat Fiber%' group by a.sde  
             `; 
         title = 'LL CLOUSERS';
         links = [
@@ -1083,7 +1083,6 @@ router.get('/CompletedOrders_SDE/:TYPE/:SDE', (req,res) =>{
 
 );
 
-
 //#endregion Completed Orders
 
 //#region  LL_Provisions_service_sub_type_wise
@@ -1096,7 +1095,8 @@ const LL_Provisions_service_sub_type_wise = (req,res) =>{
 
 
     const sql = `
-    select Order_sub_type,service_type,decode(service_sub_type,'Virtual Landline','Aseem','FMT','LFMT',service_sub_type) ser_type,count(1) COUNT from ${vm_orders}   where  order_status='Complete' and   trunc(order_comp_date) between '${fromDt}' AND '${toDt}' and 
+    select Order_sub_type,service_type,decode(service_sub_type,'Virtual Landline','Aseem','FMT','LFMT',service_sub_type) ser_type,count(1) COUNT from ${vm_orders}  
+     where  order_status='Complete' and   trunc(order_comp_date) between '${fromDt}' AND '${toDt}' and 
     order_type='New'  and order_sub_type='Provision'  and service_sub_type not like 'FTTH%'  group by Order_sub_type,service_type,service_sub_type
     `; 
 
@@ -1126,10 +1126,7 @@ const LL_Provisions_service_sub_type_wise = (req,res) =>{
                     endOfMonth:endOfMonth}
         })
     })  
-   
-
-
-
+    
 }
 
 
@@ -1183,6 +1180,69 @@ router.get('/LL_Provisions/:SER_TYPE',(req,res)=>{
 });
 //#endregion LL_Provisions_service_sub_type_wise
 
+
+
+
+//#region  Cluster_Wise_Pending_Orders
+
+const Cluster_Wise_Pending_Orders = async(req,res) =>{
+    
+    const {startOfMonth, endOfMonth, fromDt, toDt} = calenderMiddleware(req)
+
+    let tablesummary = [];
+    let summarypage = ''
+
+
+    let sql_SDE = `
+select a.exchange_code, a.ll_plan_no, a.bb_plan_no, c.clust_no, count(1) COUNT from sys.vm_working_lines a,  ${vm_orders} b, vm_exchange_control c
+where a.phone_no=b.phone_no and b.exchange_code=c.exchange and b.order_type='Disconnect' and b.order_sub_type like 'Disconnect%' 
+and b.indoor_comp_date <='${fromDt}' and b.service_type='Landline' and b.order_status='In Progress' 
+group by a.exchange_code, a.ll_plan_no, a.bb_plan_no, c.clust_no
+order by a.exchange_code, c.clust_no
+    `; 
+
+    let sql_DE = `
+    select c.clust_no, decode(a.bb_plan_no, 'NO BROADBAND', 'Only LL', 'LL+BB') ser_type,  count(1) COUNT 
+    from sys.vm_working_lines a,  ${vm_orders} b, vm_exchange_control c
+    where a.phone_no=b.phone_no and b.exchange_code=c.exchange and b.order_type='Disconnect' and b.order_sub_type like 'Disconnect%' 
+    and b.indoor_comp_date <='${fromDt}' and b.service_type='Landline' and b.order_status='In Progress' 
+    group by c.clust_no, decode(a.bb_plan_no, 'NO BROADBAND', 'Only LL', 'LL+BB')
+    order by ser_type, c.clust_no
+        `; 
+
+    tablesummary = ['COUNT'];
+    summarypage = 'Cluster_Wise_Pending_Orders'
+   
+
+    // console.log(sql_SDE);
+
+
+    if(fromDt){
+        title = `Cluster Wise Pending Orders ${fromDt} `
+    }
+    
+    let result1 = await oracle.queryObject(sql_DE,{},{});
+    let result2 = await oracle.queryObject(sql_SDE,{},{});
+
+    res.render( 'Cluster_Wise_Pending_Orders', {
+        data1:result1,
+        data2:result2,
+        title:title,                   
+        tablesummary:tablesummary,
+        summarypage: summarypage,
+        calender: {
+            startOfMonth: startOfMonth,
+            endOfMonth: endOfMonth
+        }
+    }) 
+    
+}
+
+router.get('/Cluster_Wise_Pending_Orders', Cluster_Wise_Pending_Orders);
+router.post('/Cluster_Wise_Pending_Orders', Cluster_Wise_Pending_Orders);
+
+//#endregion Cluster_Wise_Pending_Orders
+
 //#region  Provisions OLTL WISE
 const FTTH_Provision_OLT = async (req, res) => {
 
@@ -1220,7 +1280,7 @@ const FTTH_Provision_OLT = async (req, res) => {
     `;
 
     tablesummary = ['VOICE', 'BB', 'COUNT'];
-    summarypage = 'FTTH_Provision_OLT/OTL'
+    summarypage = `FTTH_Provision_OLT/${order_type}`
 
 
     if (fromDt) {
@@ -1269,6 +1329,12 @@ router.get('/FTTH_Provision_OLT/:order_type/:OLT',(req,res)=>{
     let title = ''
     let order_type = req.params.order_type
 
+    let totalCondition = ''
+
+    if(req.params.OLT !='TOTAL') {
+        totalCondition = `and  c.olt_ip='${req.params.OLT}'`;
+    } 
+
 
     const sql = `
     
@@ -1284,7 +1350,7 @@ router.get('/FTTH_Provision_OLT/:order_type/:OLT',(req,res)=>{
     and b.order_status='Complete' 
     and trunc(b.order_comp_date) between '${fromDt}' AND '${toDt}'
     and b.order_type='${order_type}' and b.service_sub_type like 'Bharat Fiber%'  
-    and  c.olt_ip='${req.params.OLT}' order by b.service_sub_type  
+    ${totalCondition} order by b.service_sub_type  
     
  `;
 
@@ -1298,11 +1364,16 @@ router.get('/FTTH_Provision_OLT/:order_type/:OLT',(req,res)=>{
         title = `${title} of OLT IP : <i style='color:lightgreen'> ${req.params.OLT} </i>  From ${fromDt} To ${toDt}`
     }
 
+    console.log(sql);
 
     oracle.queryObject(sql,{},{}).then(result => {      
         res.render( 'index2', {
             data:result,
-            title:title
+            title:title,
+            calender: {
+                startOfMonth: startOfMonth,
+                endOfMonth: endOfMonth
+            }
         })
     })  
 });
@@ -1442,13 +1513,19 @@ function calenderMiddleware(req){
 }
 
 router.get('/test',async(req, res)=> {
-    let sql = 'select DE, count(*) cnt from vm_exchange_control group by DE';
+    let sql = 'select DE, count(*) CNT from vm_exchange_control group by DE';
 
     let result1 = await oracle.queryObject(sql,{},{},'orcl');
     // let sql = 'select * from dual';
     // let result1 = await oracle.queryObject(sql,{},{},'itpc');
 
-    res.json(result1)
+    // res.json(result1)
+    res.render('chart0', {
+        title:'Google Chart',
+        data:result1,
+        x:'DE',
+        y:'CNT'
+    })
 })
 
 router.all('*', (req, res) => {
