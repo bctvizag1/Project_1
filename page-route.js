@@ -1364,7 +1364,7 @@ router.get('/FTTH_Provision_OLT/:order_type/:OLT',(req,res)=>{
         title = `${title} of OLT IP : <i style='color:lightgreen'> ${req.params.OLT} </i>  From ${fromDt} To ${toDt}`
     }
 
-    console.log(sql);
+    //console.log(sql);
 
     oracle.queryObject(sql,{},{}).then(result => {      
         res.render( 'index2', {
