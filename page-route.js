@@ -189,7 +189,6 @@ router.get('/NPC_PENDING_ORDERS/:TYPE',async (req,res) =>{
     let links =[];
     let tablesummary = [];
     let summarypage = ''
-    
 
 
     switch (req.params.TYPE) {
@@ -271,7 +270,6 @@ router.get('/NPC_PENDING_ORDERS/:TYPE',async (req,res) =>{
       default:
         break;
     }
-
 
     let result1 = await oracle.queryObject(sql_DE,{},{});
     let result2 = await oracle.queryObject(sql_SDE,{},{});
@@ -386,16 +384,18 @@ router.get('/Pending_Faults/:TYPE',async(req,res) =>{
     switch (req.params.TYPE) {
       case "LL":
         sql_SDE = `
-            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, ${vm_orders} b 
-            where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' 
-            AND   b.order_sub_type like 'Provision%' 
-            and  order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  
-            and service_sub_type='Fixed Landline' and  phone_no not like '0891-297%' 
-            group by sde order by sde  
-            `; 
-        title = 'LL NPC Pending Orders';
+        select a.sde SDE, count(1) COUNT from vm_exchange_control a, 
+        sys.VM_CDR_FAULTS2 b  where a.exchange=b.exchange_code and 
+        b.ssa='VISAKHAPATNAM' and  b.comp_status='Open'  group by a.sde
+        `;
+        sql_DE = `
+        select a.DE DE, count(1) COUNT from vm_exchange_control a, 
+        sys.VM_CDR_FAULTS2 b  where a.exchange=b.exchange_code and 
+        b.ssa='VISAKHAPATNAM' and  b.comp_status='Open'  group by a.DE
+        `;
+        title = 'LL Pending Faults';
         links = [
-            {feild:"COUNT", params:`SDE` , page:'NPC_PENDING_ORDERS_SDE/LL'}
+            {feild:"COUNT", params:`SDE` , page:'Pending_Faults_SDE/LL'}
         ];
         tablesummary = ['COUNT'];
         summarypage = 'Pending_Faults_SDE/LL'
@@ -472,10 +472,10 @@ router.get('/Pending_Faults_SDE/:TYPE/:SDE', (req,res) =>{
         service_sub_type = `and service_sub_type='Fixed Landline' and  phone_no not like '0891-297%'  `;
 
         sql_SDE = `
-        SELECT A.SDE sde, b.Phone_NO  FROM vm_exchange_control a, ${vm_orders} b 
-        where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='New' AND  
-        b.order_sub_type like 'Provision%' ${sqlSDE} and
-        order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  ${service_sub_type}    
+        select  b.exchange_code, b.docket_no, b.phone_no,  trunc(comp_bkd_date) Booked_Dt, 
+        comp_type, comp_sub_type,comp_sub_status, pending_task 
+        from sys.VM_CDR_FAULTS2 b join vm_exchange_control a  on  a.exchange=b.exchange_code
+        and  b.comp_status='Open'  ${sqlSDE}     
         `; 
         break;
       case "BB":
@@ -507,7 +507,7 @@ router.get('/Pending_Faults_SDE/:TYPE/:SDE', (req,res) =>{
         break;
     }
 
-    // console.log(sql_SDE);   
+    //  console.log(sql_SDE);   
     
     oracle.queryObject(sql_SDE,{},{}).then(result => {   
         res.render( 'index2', {
@@ -727,44 +727,51 @@ const CLOUSER_PENDING = async(req,res) =>{
     switch (req.params.TYPE) {
       case "LL":
         sql_SDE = `
-        SELECT A.SDE sde,COUNT(1)  COUNT FROM vm_exchange_control a,sys.vm_orders b 
-        where a.exchange=b.exchange_code
-        and b.ssa='VISAKHAPATNAM' 
-        and b.order_type='Disconnect' 
-        AND  b.order_sub_type like 'Disconnect%' 
-        and  order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  
-        and service_sub_type='Fixed Landline' group by sde
-            `; 
-        sql_DE = `
-        SELECT A.DE sde,COUNT(1)  COUNT FROM vm_exchange_control a,sys.vm_orders b 
-        where a.exchange=b.exchange_code
-        and b.ssa='VISAKHAPATNAM' 
-        and b.order_type='Disconnect' 
-        AND  b.order_sub_type like 'Disconnect%' 
-        and  order_status not in ('Complete','Open','Cancelled','Submission In Progress','Not Feasible')  
-        and service_sub_type='Fixed Landline' group by de
-            `; 
+        
+        select sde sde,sum(case when order_sub_type='Disconnect' then 1 else 0 end) clsvo,sum(case when order_sub_type='Disconnect Due to NP' then 1 else 0 end) clsnp, 
+        sum(case when order_sub_type='Disconnect' then 1 else 0 end) +  sum(case when order_sub_type='Disconnect Due to NP' then 1 else 0 end) COUNT from ${vm_orders} a,vm_exchange_control b 
+        where service_sub_type like 'Fixed Landline%'  
+        and a.exchange_code=b.exchange and order_type='Disconnect' and  order_status='In Progress' 
+        group by sde order by SDE
 
+
+        `;
+        sql_DE = `
+        select DE DE,sum(case when order_sub_type='Disconnect' then 1 else 0 end) clsvo,sum(case when order_sub_type='Disconnect Due to NP' then 1 else 0 end) clsnp, 
+        sum(case when order_sub_type='Disconnect' then 1 else 0 end) +  sum(case when order_sub_type='Disconnect Due to NP' then 1 else 0 end) COUNT from ${vm_orders} a,vm_exchange_control b 
+        where  service_sub_type like 'Fixed Landline%'  
+        and a.exchange_code=b.exchange and order_type='Disconnect' and  order_status='In Progress' 
+        group by DE order by de
+        `;
+       
 
         title = 'LL Closures Pending';
         links = [
             {feild:"COUNT", params:`SDE` , page:'CLOUSER_PENDING_SDE/LL'}
         ];
-        tablesummary = ['COUNT'];
+        tablesummary = ['CLSVO', 'CLSNP','COUNT'];
         summarypage = 'CLOUSER_SDE/LL'
         break;
       case "BB":
-        sql_SDE = `
-            SELECT A.SDE sde,COUNT(1) count FROM vm_exchange_control a, ${vm_orders} b 
-            where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' 
-            and trunc(order_comp_date) between '${fromDt}'  AND '${toDt}' 
-            and order_type='Disconnect' 
-            and order_sub_type like 'Broadband Provision%' 
-            and  order_status not in ('Complete','Open','Cancelled','Submission In Progress')  and phone_no not like '0891-297%'
-            group by a.sde             
-            `; 
+
+      sql_SDE = `
         
-        title = 'BB CLOUSERS'
+      select sde sde,sum(case when order_sub_type='Disconnect' then 1 else 0 end) clsvo,sum(case when order_sub_type='Disconnect Due to NP' then 1 else 0 end) clsnp, count(*) COUNT from ${vm_orders} a,vm_exchange_control b 
+      where service_sub_type like 'Broadband Provision%'  
+      and a.exchange_code=b.exchange and order_type='Disconnect' and  order_status='In Progress' 
+      group by sde order by SDE
+
+
+      `;
+      sql_DE = `
+      select DE DE,sum(case when order_sub_type='Disconnect' then 1 else 0 end) clsvo,sum(case when order_sub_type='Disconnect Due to NP' then 1 else 0 end) clsnp, count(*) COUNT from ${vm_orders} a,vm_exchange_control b 
+      where  service_sub_type like 'Broadband Provision%'  
+      and a.exchange_code=b.exchange and order_type='Disconnect' and  order_status='In Progress' 
+      group by DE order by de
+      `;
+
+        
+        title = 'BB CLOUSERS PENDING'
         
         links = [
                 {feild:"COUNT", params:`SDE` , page:'CLOUSER_PENDING_SDE/BB'}
@@ -840,7 +847,9 @@ router.get('/CLOUSER_PENDING_SDE/:TYPE/:SDE', (req,res) =>{
         service_sub_type = `and service_sub_type='Fixed Landline' and  phone_no not like '0891-297%'  `;
 
         sql_SDE = `
-        SELECT A.SDE sde, b.Phone_NO, order_sub_type  FROM vm_exchange_control a, ${vm_orders} b 
+        SELECT A.SDE sde, b.Phone_NO, order_sub_type, PENDING_TASK, CLARITY_SERVICE_ORDER, ORDER_NO, ORDER_CREATED_DATE,
+        ORDER_STATUS,BB_USER_ID,SERVICE_SUB_TYPE,
+       (trunc(sysdate)-trunc(order_created_date)) pend_days,BILL_ACCNT_NO ,customer_name,mobile_no  FROM vm_exchange_control a, ${vm_orders} b 
         where a.exchange=b.exchange_code and b.ssa='VISAKHAPATNAM' and b.order_type='Disconnect' AND  
          order_sub_type in ('Disconnect Due to NP','Disconnect')  ${sqlSDE} 
         and order_status='In Progress'   ${service_sub_type}    
@@ -859,11 +868,12 @@ router.get('/CLOUSER_PENDING_SDE/:TYPE/:SDE', (req,res) =>{
         
         break;
 
-        case "FTTH":
+      case "FTTH":
         sql_SDE = `
-        select EXCHANGE_CODE ,PHONE_NO,PENDING_TASK,order_sub_type, CLARITY_SERVICE_ORDER, ORDER_NO, ORDER_CREATED_DATE, ORDER_STATUS,BB_USER_ID,SERVICE_SUB_TYPE,
+        select EXCHANGE_CODE ,PHONE_NO,PENDING_TASK,order_sub_type, CLARITY_SERVICE_ORDER, ORDER_NO, ORDER_CREATED_DATE,
+         ORDER_STATUS,BB_USER_ID,SERVICE_SUB_TYPE,
         (trunc(sysdate)-trunc(order_created_date)) pend_days,BILL_ACCNT_NO ,customer_name,mobile_no from ${vm_orders} b, vm_exchange_control a 
-        where service_sub_type like 'Bharat Fiber%'  and a.exchange_code=b.exchange 
+        where service_sub_type like 'Bharat Fiber%'  and b.exchange_code = a.exchange 
         and order_sub_type in ('Disconnect Due to NP','Disconnect') 
         and  order_status='In Progress' ${sqlSDE} 
         order by  pend_days desc
@@ -875,7 +885,7 @@ router.get('/CLOUSER_PENDING_SDE/:TYPE/:SDE', (req,res) =>{
         break;
     }
 
-    // console.log(sql_SDE);   
+     //console.log(sql_SDE);   
     
     
     oracle.queryObject(sql_SDE,{},{}).then(result => {   
@@ -1069,7 +1079,7 @@ router.get('/CompletedOrders_SDE/:TYPE/:SDE', (req,res) =>{
         break;
     }
 
-    // console.log(sql_SDE);   
+    //console.log(sql_SDE);   
     
     oracle.queryObject(sql_SDE,{},{}).then(result => {   
         res.render( 'index2', {
@@ -1179,9 +1189,6 @@ router.get('/LL_Provisions/:SER_TYPE',(req,res)=>{
     })  
 });
 //#endregion LL_Provisions_service_sub_type_wise
-
-
-
 
 //#region  Cluster_Wise_Pending_Orders
 
@@ -1379,7 +1386,6 @@ router.get('/FTTH_Provision_OLT/:order_type/:OLT',(req,res)=>{
 });
 //#endregion Provisions OLTL WISE
 
-
 //#region  Closures OLTL WISE
 const FTTH_Closures_OLT = (req,res) =>{
     
@@ -1475,13 +1481,10 @@ router.get('/FTTH_Closures_OLT/:OLT',(req,res)=>{
 //#endregion Closures OLTL WISE
 
 
-
 function calenderMiddleware(req){
 
     session = req.session
 
-    console.log("body", req.body.fromDt, req.body.toDt);
-    console.log("session", req.session.fromDt, req.session.toDt);
     
     let fromDt = moment().startOf('month').format('YYYY-MM-DD');
     let toDt   = moment().endOf('month').format('YYYY-MM-DD');

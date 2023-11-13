@@ -5,6 +5,8 @@ const apiRouter = require('./api-route');
 const pageRouter = require('./page-route');
 const moment = require("moment");
 
+const fs = require('fs');
+
 const PORT = 3001
 
 var app = express();
@@ -33,11 +35,20 @@ let test =function(x) {
 }
 
 //Create Welcome Page
-app.use((req, res, next)=>{    
+app.use((req, res, next) => {
     res.locals.moment = moment;
-    res.locals.test  = test;
+    res.locals.test = test;
+    var ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
+    let wrt = `IP : ${ip}, URL: ${req.url} \n`;
+    console.log(wrt);
+    fs.writeFile('logfile.txt', wrt, { flag: 'a+' }, (err) => {
+        if (err) {
+            throw err;
+        }
+
+    });
     next();
-  });
+});
 
 app.use('/', pageRouter);
 
